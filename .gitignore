@@ -1,0 +1,6 @@
+node_modules/
+backup_validacao/
+teste-integrado.js
+deploy-temp.js
+.DS_Store
+*.log

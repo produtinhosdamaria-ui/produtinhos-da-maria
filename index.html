@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Produtinhos da Maria | Boutique Sensual & Lifestyle</title>
+  <meta name="description" content="Produtinhos da Maria - Boutique sensual premium, sofisticada e discreta. Lingerie, aromas, cosméticos e bem-estar íntimo.">
+  <meta name="theme-color" content="#0D0709">
+
+  <!-- Estilos e Design System -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase Compat CDN (v9.23.0) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  
+  <!-- Camada de Dados e Fallback -->
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       Age Gate (Verificação de Maioridade 18+)
+       ========================================================================== -->
+  <div id="ageGateModal" class="modal-overlay age-gate-overlay" role="dialog" aria-modal="true" aria-labelledby="ageGateTitle">
+    <div class="modal-card age-gate-card">
+      <svg class="age-gate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        <circle cx="12" cy="16" r="1.5"></circle>
+      </svg>
+      <h2 id="ageGateTitle" class="age-gate-title">Conteúdo Reservado</h2>
+      <p class="age-gate-text">
+        Bem-vinda à <strong>Produtinhos da Maria</strong>. Nosso catálogo contém produtos voltados ao bem-estar íntimo e sensual para maiores de 18 anos.
+      </p>
+      <div class="age-gate-buttons">
+        <button id="btnAgeReject" class="btn-secondary" type="button">Sair</button>
+        <button id="btnAgeAccept" class="btn-primary" type="button">Tenho 18+ anos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       Header Principal
+       ========================================================================== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo-wrapper" aria-label="Página Inicial - Produtinhos da Maria">
+        <!-- Ícone de Fechadura Dourada Estilizada -->
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="10" r="3"></circle>
+          <path d="M12 13v4"></path>
+          <path d="M5 20h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"></path>
+        </svg>
+        <h1 class="brand-title">Produtinhos <span>da Maria</span></h1>
+      </a>
+
+      <div class="header-actions">
+        <!-- Botão Modo Discreto -->
+        <button id="btnToggleDiscrete" class="btn-icon" type="button" title="Alternar Modo Discreto (desfoca imagens e oculta identificação)" aria-pressed="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>
+          <span id="discreteLabel">Modo Discreto</span>
+        </button>
+
+        <!-- Botão Painel Admin -->
+        <a href="admin.html" class="btn-icon" title="Acessar Painel da Loja" aria-label="Painel Administrativo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span class="admin-btn-text">Painel</span>
+        </a>
+
+        <!-- Botão Abrir Sacola -->
+        <button id="btnOpenCart" class="btn-icon" type="button" aria-label="Abrir Sacola de Compras">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          <span class="cart-btn-text">Sacola</span>
+          <span id="cartCountBadge" class="cart-counter">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       Hero Banner & Busca
+       ========================================================================== */ -->
+  <section class="hero-section">
+    <div class="hero-subtitle">Boutique & Lifestyle Adulto</div>
+    <h2 class="hero-title">O desejo está no <em>detalhe</em></h2>
+    <p class="hero-tagline">
+      Descubra devagar. Escolhas sofisticadas e acolhedoras para viver seus melhores momentos com total liberdade e privacidade.
+    </p>
+
+    <!-- Barra de Busca Instantânea -->
+    <div class="search-box-wrapper">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="search" id="catalogSearch" class="search-input" placeholder="Buscar por nome, aroma ou código..." autocomplete="off">
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       Barra de Categorias
+       ========================================================================== -->
+  <nav class="categories-bar" aria-label="Categorias de Produtos">
+    <ul class="categories-list" id="categoryList">
+      <li><button class="category-pill active" data-cat="all" type="button">✨ Todas as Peças</button></li>
+      <li><button class="category-pill" data-cat="Lingerie" type="button">🌹 Lingerie</button></li>
+      <li><button class="category-pill" data-cat="Velas e Aromas" type="button">🕯️ Velas & Aromas</button></li>
+      <li><button class="category-pill" data-cat="Casais e Jogos" type="button">🍷 Casais & Jogos</button></li>
+      <li><button class="category-pill" data-cat="Acessórios" type="button">🖤 Acessórios</button></li>
+      <li><button class="category-pill" data-cat="Cosméticos Sensuais" type="button">💄 Cosméticos Sensuais</button></li>
+      <li><button class="category-pill" data-cat="Kits Presente" type="button">🎀 Kits Presente</button></li>
+    </ul>
+  </nav>
+
+  <!-- ==========================================================================
+       Catálogo Principal de Produtos
+       ========================================================================== -->
+  <main class="catalog-container">
+    <div class="catalog-header">
+      <h3 class="catalog-title" id="currentSectionTitle">Coleção Exclusiva</h3>
+      <span class="products-count" id="productsCount">Carregando itens...</span>
+    </div>
+
+    <!-- Grade dos Cards -->
+    <div class="products-grid" id="productsGrid" aria-live="polite">
+      <!-- Inserido dinamicamente via JavaScript -->
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       Modal de Variações / Opções do Produto
+       ========================================================================== -->
+  <div id="variationModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalProductTitle">
+    <div class="modal-card">
+      <button class="btn-close" id="btnCloseVariationModal" style="position: absolute; top: 16px; right: 16px;" aria-label="Fechar">&times;</button>
+      <h3 id="modalProductTitle" class="card-title" style="margin-bottom: 6px;">Nome do Produto</h3>
+      <div id="modalProductPrice" class="price-current" style="margin-bottom: 14px;">R$ 0,00</div>
+
+      <div class="form-group" id="variationsGroup">
+        <label class="section-label" for="selectVariation">Escolha a Opção:</label>
+        <select id="selectVariation" class="form-control">
+          <!-- Opções preenchidas dinamicamente -->
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="section-label">Quantidade:</label>
+        <div style="display: inline-flex; align-items: center; gap: 12px;">
+          <button type="button" class="qty-btn" id="btnModalQtyDec">-</button>
+          <span id="modalQtyVal" style="font-weight: 700; min-width: 24px; text-align: center;">1</span>
+          <button type="button" class="qty-btn" id="btnModalQtyInc">+</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button id="btnConfirmAddToCart" class="btn-primary" type="button">
+          Adicionar à Sacola
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       Lightbox em Tela Cheia (Zoom da Imagem)
+       ========================================================================== -->
+  <div id="lightboxOverlay" class="lightbox-overlay" role="dialog" aria-modal="true" aria-label="Visualizador de Imagem">
+    <button id="btnCloseLightbox" class="lightbox-close" aria-label="Fechar">&times;</button>
+    <div class="lightbox-content">
+      <img id="lightboxImg" class="lightbox-img" src="" alt="Detalhe do Produto" referrerpolicy="no-referrer">
+    </div>
+    <div class="lightbox-tip">Toque duplo ou clique para aplicar zoom</div>
+  </div>
+
+  <!-- ==========================================================================
+       Sacola Lateral (Cart Drawer)
+       ========================================================================== -->
+  <div id="cartOverlay" class="cart-drawer-overlay">
+    <aside class="cart-drawer" aria-label="Sua Sacola de Compras">
+      <div class="drawer-header">
+        <h3 class="drawer-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          Sua Sacola
+        </h3>
+        <button id="btnCloseCart" class="btn-close" aria-label="Fechar Sacola">&times;</button>
+      </div>
+
+      <div class="drawer-body">
+        <div id="cartItemsList" class="cart-items-list">
+          <!-- Itens da sacola renderizados via JS -->
+        </div>
+
+        <div id="cartEmptyState" style="text-align: center; padding: 40px 10px; color: var(--text-muted); display: none;">
+          <p style="font-size: 1.1rem; margin-bottom: 8px;">Sua sacola está vazia.</p>
+          <p style="font-size: 0.85rem;">Descubra nossas peças exclusivas no catálogo.</p>
+        </div>
+
+        <!-- Seções de Entrega e Cupom (visíveis se houver itens) -->
+        <div id="cartCheckoutDetails">
+          <div class="checkout-section">
+            <label class="section-label">Forma de Recebimento</label>
+            <div class="delivery-options">
+              <button type="button" id="btnDeliveryLocal" class="delivery-btn active">Entrega Local</button>
+              <button type="button" id="btnDeliveryPickup" class="delivery-btn">Retirada no Local</button>
+            </div>
+
+            <!-- Seleção de Cidade / Bairro para entrega -->
+            <div id="deliveryAddressGroup">
+              <div class="form-group">
+                <label class="section-label" for="selectCity">Cidade / Região:</label>
+                <select id="selectCity" class="form-control">
+                  <option value="">Selecione sua localidade...</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="section-label" for="inputAddress">Endereço de Entrega:</label>
+                <input type="text" id="inputAddress" class="form-control" placeholder="Rua, número, complemento e bairro">
+              </div>
+            </div>
+          </div>
+
+          <!-- Cupom de Desconto -->
+          <div class="checkout-section">
+            <label class="section-label" for="inputCoupon">Cupom de Desconto</label>
+            <div class="coupon-group">
+              <input type="text" id="inputCoupon" class="form-control" placeholder="Ex: BEMVINDA" style="text-transform: uppercase;">
+              <button type="button" id="btnApplyCoupon" class="coupon-btn">Aplicar</button>
+            </div>
+            <div id="couponFeedback" class="coupon-message"></div>
+          </div>
+
+          <!-- Dados do Cliente Discretos -->
+          <div class="checkout-section">
+            <div class="form-group">
+              <label class="section-label" for="inputClientName">Nome para Entrega (Pode ser apelido):</label>
+              <input type="text" id="inputClientName" class="form-control" placeholder="Como deseja ser chamada(o)">
+            </div>
+            <div class="form-group">
+              <label class="section-label" for="inputNotes">Observações adicionais (opcional):</label>
+              <input type="text" id="inputNotes" class="form-control" placeholder="Ponto de referência, horário preferido...">
+            </div>
+          </div>
+
+          <!-- Aviso de Discrição da Embalagem -->
+          <div class="discreet-notice">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span><strong>Entrega 100% Discreta:</strong> Embalagem totalmente neutra e lacrada, sem menção a produtos sensuais ou nome sugestivo no pacote externo.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumo de Valores e Botão WhatsApp -->
+      <div class="drawer-footer" id="cartFooter">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="summarySubtotal">R$ 0,00</span>
+        </div>
+        <div class="summary-row" id="rowDiscount" style="display: none; color: var(--gold-aged);">
+          <span>Desconto</span>
+          <span id="summaryDiscount">- R$ 0,00</span>
+        </div>
+        <div class="summary-row">
+          <span>Frete</span>
+          <span id="summaryShipping">R$ 0,00</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total Estimado</span>
+          <span class="val" id="summaryTotal">R$ 0,00</span>
+        </div>
+
+        <button id="btnWhatsappCheckout" class="btn-whatsapp-checkout" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zM12 20.08c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.134 8.134 0 0 1-1.25-4.31c0-4.52 3.68-8.2 8.2-8.2 2.19 0 4.25.85 5.8 2.4 1.55 1.55 2.41 3.61 2.41 5.8 0 4.52-3.68 8.17-8.17 8.17zm4.49-6.13c-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07s.89 2.4 1.02 2.57c.12.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.53.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.12-.22-.19-.47-.32z"/>
+          </svg>
+          Enviar Pedido pelo WhatsApp
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ==========================================================================
+       Rodapé
+       ========================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand">Produtinhos da Maria</div>
+      <p class="footer-privacy-text">
+        Privacidade respeitada, discrição garantida e atendimento acolhedor. Embalagens 100% neutras e sem identificação externa em todas as entregas.
+      </p>
+
+      <!-- Contato Direto & Atendimento WhatsApp / Instagram -->
+      <div style="margin: 16px 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
+        <span style="font-size: 0.86rem; color: var(--rose-nude); width: 100%; margin-bottom: 2px;">Dúvidas ou atendimento discreto? Fale comigo:</span>
+        <a href="https://wa.me/5546999416047?text=Ol%C3%A1%2C%20Maria!%20Gostaria%20de%20tirar%20uma%20d%C3%BAvida%20sobre%20os%20produtos." target="_blank" rel="noopener noreferrer" style="color: var(--gold-aged); font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 6px 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); background: rgba(201, 162, 77, 0.08); transition: var(--transition-normal);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zM12 20.08c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.134 8.134 0 0 1-1.25-4.31c0-4.52 3.68-8.2 8.2-8.2 2.19 0 4.25.85 5.8 2.4 1.55 1.55 2.41 3.61 2.41 5.8 0 4.52-3.68 8.17-8.17 8.17zm4.49-6.13c-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07s.89 2.4 1.02 2.57c.12.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.53.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.12-.22-.19-.47-.32z"/>
+          </svg>
+          WhatsApp: (46) 99941-6047
+        </a>
+
+        <a href="https://instagram.com/produtinhosdamaria_sexshop" target="_blank" rel="noopener noreferrer" style="color: var(--rose-gold); font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 6px 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); background: rgba(183, 110, 121, 0.08); transition: var(--transition-normal);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          @produtinhosdamaria_sexshop
+        </a>
+      </div>
+
+      <div class="footer-copyright">
+        &copy; <span id="currentYear"></span> Produtinhos da Maria. Todos os direitos reservados. Venda proibida para menores de 18 anos.
+      </div>
+      <div style="margin-top: 14px;">
+        <a href="admin.html" class="footer-admin-link" style="color: var(--gold-aged); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; opacity: 0.75; transition: opacity 0.2s;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          Área da Administradora / Painel
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       Lógica da Aplicação (Vanilla JS)
+       ========================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      // --- ESTADO DA APLICAÇÃO ---
+      const APP_STATE = {
+        products: [],
+        cities: [],
+        coupons: [],
+        settings: {},
+        selectedCategory: 'all',
+        searchQuery: '',
+        isDiscrete: false,
+        cart: [],
+        appliedCoupon: null,
+        deliveryType: 'local', // 'local' ou 'pickup'
+        selectedCityId: '',
+        activeModalProduct: null,
+        modalQty: 1
+      };
+
+      // Chaves de Armazenamento Local
+      const LOCAL_KEYS = {
+        AGE_VERIFIED: 'pdm_age_verified',
+        DISCRETE_MODE: 'pdm_discrete_mode',
+        SAVED_CART: 'pdm_cart_v2'
+      };
+
+      // Formatação em Moeda Brasileira (R$)
+      function formatBRL(amountInReais) {
+        return new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }).format(amountInReais);
+      }
+
+      // Normalização de texto sem acentos para busca
+      function normalizeText(text) {
+        if (!text) return '';
+        return String(text)
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
+      }
+
+      // SVG Placeholder de Imagem Quebrada
+      const PLACEHOLDER_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' width='100%25' height='100%25'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%2338101E'/%3E%3Cstop offset='100%25' stop-color='%230D0709'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grad)'/%3E%3Ccircle cx='100' cy='90' r='18' stroke='%23C9A24D' stroke-width='4' fill='none'/%3E%3Cpath d='M96 108h8l3 34h-14z' fill='%23C9A24D'/%3E%3Ctext x='100' y='165' text-anchor='middle' fill='%23B8A8A4' font-family='sans-serif' font-size='12' letter-spacing='1'%3EIMAGEM RESERVADA%3C/text%3E%3C/svg%3E";
+
+      // --- INICIALIZAÇÃO ---
+      document.addEventListener('DOMContentLoaded', () => {
+        initAgeGate();
+        initDiscreteMode();
+        loadLocalCart();
+        bindEvents();
+
+        // Carrega dados da camada DB
+        refreshDataFromStore();
+
+        // Escuta atualizações em tempo real (Firebase / Storage)
+        if (window.DB && window.DB.onDataChange) {
+          window.DB.onDataChange(() => {
+            refreshDataFromStore();
+          });
+        }
+
+        // Ano no rodapé
+        const elYear = document.getElementById('currentYear');
+        if (elYear) elYear.textContent = new Date().getFullYear();
+      });
+
+      function refreshDataFromStore() {
+        if (!window.DB) return;
+        APP_STATE.products = window.DB.getProducts();
+        APP_STATE.cities = window.DB.getCities();
+        APP_STATE.coupons = window.DB.getCoupons();
+        APP_STATE.settings = window.DB.getSettings();
+
+        // Reconciliação inteligente da sacola salva no LocalStorage
+        if (Array.isArray(APP_STATE.cart) && APP_STATE.cart.length > 0) {
+          APP_STATE.cart = APP_STATE.cart.filter(item => {
+            const liveProd = APP_STATE.products.find(p => p.id === item.id);
+            if (!liveProd || liveProd.foraDeEstoque) return false;
+            const currentPrice = (liveProd.precoPromocional > 0 && liveProd.precoPromocional < liveProd.precoOriginal)
+              ? liveProd.precoPromocional
+              : liveProd.precoOriginal;
+            item.preco = currentPrice;
+            item.precoInCents = Math.round(currentPrice * 100);
+            item.nome = liveProd.nome;
+            return true;
+          });
+          saveLocalCart();
+        }
+
+        populateCitySelect();
+        renderCatalog();
+        updateCartUI();
+      }
+
+      // --- 1. AGE GATE (18+) ---
+      function initAgeGate() {
+        const modal = document.getElementById('ageGateModal');
+        const isVerified = localStorage.getItem(LOCAL_KEYS.AGE_VERIFIED) === 'true';
+
+        if (!isVerified) {
+          modal.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        }
+
+        document.getElementById('btnAgeAccept').addEventListener('click', () => {
+          localStorage.setItem(LOCAL_KEYS.AGE_VERIFIED, 'true');
+          modal.classList.remove('open');
+          document.body.style.overflow = '';
+        });
+
+        document.getElementById('btnAgeReject').addEventListener('click', () => {
+          window.location.href = 'https://www.google.com';
+        });
+      }
+
+      // --- 2. MODO DISCRETO ---
+      function initDiscreteMode() {
+        const saved = localStorage.getItem(LOCAL_KEYS.DISCRETE_MODE) === 'true';
+        setDiscreteMode(saved);
+
+        document.getElementById('btnToggleDiscrete').addEventListener('click', () => {
+          setDiscreteMode(!APP_STATE.isDiscrete);
+        });
+      }
+
+      function setDiscreteMode(enable) {
+        APP_STATE.isDiscrete = enable;
+        localStorage.setItem(LOCAL_KEYS.DISCRETE_MODE, enable ? 'true' : 'false');
+        
+        const btn = document.getElementById('btnToggleDiscrete');
+        const label = document.getElementById('discreteLabel');
+
+        if (enable) {
+          document.body.classList.add('discrete-mode');
+          document.title = 'Artigos de Leitura e Notas Pessoais';
+          btn.setAttribute('aria-pressed', 'true');
+          label.textContent = 'Modo Normal';
+        } else {
+          document.body.classList.remove('discrete-mode');
+          document.title = 'Produtinhos da Maria | Boutique Sensual & Lifestyle';
+          btn.setAttribute('aria-pressed', 'false');
+          label.textContent = 'Modo Discreto';
+        }
+      }
+
+      // --- 3. EVENTOS DA INTERFACE ---
+      function bindEvents() {
+        // Busca instantânea
+        const searchInput = document.getElementById('catalogSearch');
+        searchInput.addEventListener('input', (e) => {
+          APP_STATE.searchQuery = e.target.value;
+          renderCatalog();
+        });
+
+        // Categorias
+        const catButtons = document.querySelectorAll('.category-pill');
+        catButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            catButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            APP_STATE.selectedCategory = btn.dataset.cat;
+            renderCatalog();
+          });
+        });
+
+        // Sacola Drawer
+        const btnOpenCart = document.getElementById('btnOpenCart');
+        const btnCloseCart = document.getElementById('btnCloseCart');
+        const cartOverlay = document.getElementById('cartOverlay');
+
+        btnOpenCart.addEventListener('click', () => openCartDrawer());
+        btnCloseCart.addEventListener('click', () => closeCartDrawer());
+        cartOverlay.addEventListener('click', (e) => {
+          if (e.target === cartOverlay) closeCartDrawer();
+        });
+
+        // Forma de Recebimento
+        document.getElementById('btnDeliveryLocal').addEventListener('click', () => {
+          setDeliveryType('local');
+        });
+        document.getElementById('btnDeliveryPickup').addEventListener('click', () => {
+          setDeliveryType('pickup');
+        });
+
+        // Seleção de Cidade
+        document.getElementById('selectCity').addEventListener('change', (e) => {
+          APP_STATE.selectedCityId = e.target.value;
+          updateCartUI();
+        });
+
+        // Cupom
+        document.getElementById('btnApplyCoupon').addEventListener('click', handleApplyCoupon);
+        document.getElementById('inputCoupon').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') handleApplyCoupon();
+        });
+
+        // Modal de Variações
+        document.getElementById('btnCloseVariationModal').addEventListener('click', closeVariationModal);
+        document.getElementById('btnModalQtyDec').addEventListener('click', () => {
+          if (APP_STATE.modalQty > 1) {
+            APP_STATE.modalQty--;
+            document.getElementById('modalQtyVal').textContent = APP_STATE.modalQty;
+          }
+        });
+        document.getElementById('btnModalQtyInc').addEventListener('click', () => {
+          const prod = APP_STATE.activeModalProduct;
+          const maxLimit = (prod && prod.destacarEstoqueBaixo && prod.estoqueBaixoQtd > 0) ? prod.estoqueBaixoQtd : 99;
+          if (APP_STATE.modalQty < maxLimit) {
+            APP_STATE.modalQty++;
+            document.getElementById('modalQtyVal').textContent = APP_STATE.modalQty;
+          }
+        });
+        document.getElementById('btnConfirmAddToCart').addEventListener('click', confirmAddToCart);
+
+        // Lightbox
+        const lightbox = document.getElementById('lightboxOverlay');
+        const btnCloseLight = document.getElementById('btnCloseLightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+
+        btnCloseLight.addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', (e) => {
+          if (e.target === lightbox) closeLightbox();
+        });
+        lightboxImg.addEventListener('click', () => {
+          lightboxImg.classList.toggle('zoomed');
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeLightbox();
+            closeVariationModal();
+            closeCartDrawer();
+          }
+        });
+
+        // Botão WhatsApp Checkout
+        document.getElementById('btnWhatsappCheckout').addEventListener('click', handleWhatsappCheckout);
+      }
+
+      // --- 4. RENDERIZAÇÃO DO CATÁLOGO ---
+      function renderCatalog() {
+        const grid = document.getElementById('productsGrid');
+        const countEl = document.getElementById('productsCount');
+
+        let filtered = APP_STATE.products.filter(p => {
+          // Filtro por Categoria
+          if (APP_STATE.selectedCategory !== 'all' && p.categoria !== APP_STATE.selectedCategory) {
+            return false;
+          }
+
+          // Filtro por Busca
+          if (APP_STATE.searchQuery.trim()) {
+            const q = normalizeText(APP_STATE.searchQuery);
+            const matchName = normalizeText(p.nome).includes(q);
+            const matchDesc = normalizeText(p.descricao).includes(q);
+            const matchSku = normalizeText(p.sku).includes(q);
+            if (!matchName && !matchDesc && !matchSku) return false;
+          }
+
+          return true;
+        });
+
+        // Ordenação inteligente: Destaques/Promoções primeiro, esgotados ao fim
+        filtered.sort((a, b) => {
+          if (a.foraDeEstoque !== b.foraDeEstoque) {
+            return a.foraDeEstoque ? 1 : -1;
+          }
+          const hasPromoA = (a.precoPromocional > 0 && a.precoPromocional < a.precoOriginal) ? 1 : 0;
+          const hasPromoB = (b.precoPromocional > 0 && b.precoPromocional < b.precoOriginal) ? 1 : 0;
+          if (hasPromoA !== hasPromoB) return hasPromoB - hasPromoA;
+          return (b.novidade ? 1 : 0) - (a.novidade ? 1 : 0);
+        });
+
+        countEl.textContent = `${filtered.length} ${filtered.length === 1 ? 'item encontrado' : 'itens encontrados'}`;
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+              <p style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--rose-nude); margin-bottom: 8px;">Nenhuma peça encontrada</p>
+              <p>Tente ajustar os termos da busca ou selecione outra categoria.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(p => createProductCardHtml(p)).join('');
+
+        // Inicializa sliders de cada card
+        filtered.forEach(p => {
+          initCardSlider(p.id);
+        });
+      }
+
+      function createProductCardHtml(product) {
+        const hasPromo = product.precoPromocional > 0 && product.precoPromocional < product.precoOriginal;
+        const currentPrice = hasPromo ? product.precoPromocional : product.precoOriginal;
+        
+        let discountPercent = 0;
+        if (hasPromo && product.precoOriginal > 0) {
+          discountPercent = Math.round(((product.precoOriginal - product.precoPromocional) / product.precoOriginal) * 100);
+        }
+
+        const images = Array.isArray(product.imagens) && product.imagens.length > 0
+          ? product.imagens
+          : [PLACEHOLDER_SVG];
+
+        // Badges
+        let badgesHtml = '';
+        if (product.foraDeEstoque) {
+          badgesHtml += `<span class="badge badge-soldout">Esgotado</span>`;
+        } else {
+          if (hasPromo && discountPercent > 0) {
+            badgesHtml += `<span class="badge badge-discount">-${discountPercent}% OFF</span>`;
+          }
+          if (product.novidade) {
+            badgesHtml += `<span class="badge badge-new">✨ Novidade</span>`;
+          }
+          if (product.destacarEstoqueBaixo && product.estoqueBaixoQtd > 0) {
+            badgesHtml += `<span class="badge badge-stock">Últimas ${product.estoqueBaixoQtd} un.</span>`;
+          }
+        }
+
+        // Slides
+        const slidesHtml = images.map((imgUrl, idx) => `
+          <div class="card-slide">
+            <img 
+              src="${window.pdmEscapeHtml(imgUrl)}" 
+              alt="${window.pdmEscapeHtml(product.nome)}" 
+              class="product-image"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              onerror="this.onerror=null; this.src='${PLACEHOLDER_SVG}';"
+              data-product-id="${product.id}"
+              data-img-index="${idx}"
+            >
+          </div>
+        `).join('');
+
+        const showSliderNav = images.length > 1;
+
+        return `
+          <article class="product-card" id="card-${product.id}">
+            <div class="card-badges">${badgesHtml}</div>
+            
+            <div class="card-slider-wrapper" id="slider-${product.id}">
+              <div class="card-slider-track" id="track-${product.id}">
+                ${slidesHtml}
+              </div>
+
+              ${showSliderNav ? `
+                <button type="button" class="slider-btn prev" data-prod="${product.id}" aria-label="Imagem anterior">&lsaquo;</button>
+                <button type="button" class="slider-btn next" data-prod="${product.id}" aria-label="Próxima imagem">&rsaquo;</button>
+                <div class="slider-dots" id="dots-${product.id}">
+                  ${images.map((_, i) => `<span class="slider-dot ${i === 0 ? 'active' : ''}"></span>`).join('')}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="card-content">
+              <span class="card-category">${window.pdmEscapeHtml(product.categoria)}</span>
+              <h4 class="card-title">${window.pdmEscapeHtml(product.nome)}</h4>
+              <p class="card-desc">${window.pdmEscapeHtml(product.descricao)}</p>
+
+              <div class="card-prices">
+                <span class="price-current">${formatBRL(currentPrice)}</span>
+                ${hasPromo ? `<span class="price-old">${formatBRL(product.precoOriginal)}</span>` : ''}
+              </div>
+
+              <button 
+                type="button" 
+                class="btn-primary" 
+                onclick="window.handleProductAction('${product.id}')"
+                ${product.foraDeEstoque ? 'disabled' : ''}
+              >
+                ${product.foraDeEstoque ? 'Indisponível' : (product.variacoes && product.variacoes.length > 0 ? 'Escolher Opção' : 'Adicionar à Sacola')}
+              </button>
+            </div>
+          </article>
+        `;
+      }
+
+      // Slider do Card
+      function initCardSlider(productId) {
+        const track = document.getElementById(`track-${productId}`);
+        const dots = document.querySelectorAll(`#dots-${productId} .slider-dot`);
+        const sliderWrapper = document.getElementById(`slider-${productId}`);
+        if (!track || !sliderWrapper) return;
+
+        let currentIndex = 0;
+        const total = track.children.length;
+        if (total <= 1) return;
+
+        function updateSlider() {
+          track.style.transform = `translateX(-${currentIndex * 100}%)`;
+          dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentIndex);
+          });
+        }
+
+        const btnPrev = sliderWrapper.querySelector('.slider-btn.prev');
+        const btnNext = sliderWrapper.querySelector('.slider-btn.next');
+
+        if (btnPrev) {
+          btnPrev.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentIndex = (currentIndex - 1 + total) % total;
+            updateSlider();
+          });
+        }
+
+        if (btnNext) {
+          btnNext.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentIndex = (currentIndex + 1) % total;
+            updateSlider();
+          });
+        }
+
+        // Suporte a Touch Swipe
+        let startX = 0;
+        let isTouching = false;
+
+        track.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX;
+          isTouching = true;
+        }, { passive: true });
+
+        track.addEventListener('touchend', (e) => {
+          if (!isTouching) return;
+          const diff = startX - e.changedTouches[0].clientX;
+          if (Math.abs(diff) > 40) {
+            if (diff > 0) {
+              currentIndex = (currentIndex + 1) % total;
+            } else {
+              currentIndex = (currentIndex - 1 + total) % total;
+            }
+            updateSlider();
+          }
+          isTouching = false;
+        }, { passive: true });
+
+        // Clique na imagem abre Lightbox
+        track.querySelectorAll('.product-image').forEach(img => {
+          img.addEventListener('click', () => {
+            openLightbox(img.src);
+          });
+        });
+      }
+
+      // --- 5. LIGHTBOX (ZOOM) ---
+      function openLightbox(src) {
+        const overlay = document.getElementById('lightboxOverlay');
+        const img = document.getElementById('lightboxImg');
+        img.src = src;
+        img.classList.remove('zoomed');
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeLightbox() {
+        const overlay = document.getElementById('lightboxOverlay');
+        const img = document.getElementById('lightboxImg');
+        overlay.classList.remove('open');
+        img.classList.remove('zoomed');
+        document.body.style.overflow = '';
+      }
+
+      // --- 6. MODAL DE VARIAÇÕES ---
+      window.handleProductAction = function (productId) {
+        const product = APP_STATE.products.find(p => p.id === productId);
+        if (!product || product.foraDeEstoque) return;
+
+        if (product.variacoes && product.variacoes.length > 0) {
+          openVariationModal(product);
+        } else {
+          addToCart(product, null, 1);
+          openCartDrawer();
+        }
+      };
+
+      function openVariationModal(product) {
+        APP_STATE.activeModalProduct = product;
+        APP_STATE.modalQty = 1;
+        document.getElementById('modalQtyVal').textContent = '1';
+
+        const modal = document.getElementById('variationModal');
+        const title = document.getElementById('modalProductTitle');
+        const price = document.getElementById('modalProductPrice');
+        const select = document.getElementById('selectVariation');
+
+        title.textContent = product.nome;
+        const currentPrice = (product.precoPromocional > 0 && product.precoPromocional < product.precoOriginal)
+          ? product.precoPromocional
+          : product.precoOriginal;
+        price.textContent = formatBRL(currentPrice);
+
+        select.innerHTML = product.variacoes.map(v => `
+          <option value="${window.pdmEscapeHtml(v)}">${window.pdmEscapeHtml(v)}</option>
+        `).join('');
+
+        modal.classList.add('open');
+      }
+
+      function closeVariationModal() {
+        const modal = document.getElementById('variationModal');
+        modal.classList.remove('open');
+        APP_STATE.activeModalProduct = null;
+      }
+
+      function confirmAddToCart() {
+        if (!APP_STATE.activeModalProduct) return;
+        const select = document.getElementById('selectVariation');
+        const selectedVariation = select.value;
+        const qty = APP_STATE.modalQty;
+
+        addToCart(APP_STATE.activeModalProduct, selectedVariation, qty);
+        closeVariationModal();
+        openCartDrawer();
+      }
+
+      // --- 7. SACOLA (CART) & PERSISTÊNCIA ---
+      function loadLocalCart() {
+        const saved = localStorage.getItem(LOCAL_KEYS.SAVED_CART);
+        if (saved) {
+          try {
+            APP_STATE.cart = JSON.parse(saved) || [];
+          } catch (e) {
+            APP_STATE.cart = [];
+          }
+        }
+      }
+
+      function saveLocalCart() {
+        localStorage.setItem(LOCAL_KEYS.SAVED_CART, JSON.stringify(APP_STATE.cart));
+        updateCartBadge();
+      }
+
+      function addToCart(product, variation, qty) {
+        const currentPrice = (product.precoPromocional > 0 && product.precoPromocional < product.precoOriginal)
+          ? product.precoPromocional
+          : product.precoOriginal;
+
+        const img = (Array.isArray(product.imagens) && product.imagens.length > 0)
+          ? product.imagens[0]
+          : PLACEHOLDER_SVG;
+
+        // Compara por ID do produto E variação
+        const existingIndex = APP_STATE.cart.findIndex(item => 
+          item.id === product.id && item.variation === variation
+        );
+
+        if (existingIndex >= 0) {
+          APP_STATE.cart[existingIndex].qty += qty;
+        } else {
+          APP_STATE.cart.push({
+            id: product.id,
+            nome: product.nome,
+            preco: currentPrice,
+            precoInCents: Math.round(currentPrice * 100),
+            variation: variation || null,
+            image: img,
+            qty: qty
+          });
+        }
+
+        saveLocalCart();
+        updateCartUI();
+      }
+
+      window.changeCartQty = function (index, delta) {
+        if (!APP_STATE.cart[index]) return;
+        APP_STATE.cart[index].qty += delta;
+        if (APP_STATE.cart[index].qty <= 0) {
+          APP_STATE.cart.splice(index, 1);
+        }
+        saveLocalCart();
+        updateCartUI();
+      };
+
+      window.removeFromCart = function (index) {
+        APP_STATE.cart.splice(index, 1);
+        saveLocalCart();
+        updateCartUI();
+      };
+
+      function openCartDrawer() {
+        document.getElementById('cartOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeCartDrawer() {
+        document.getElementById('cartOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      function updateCartBadge() {
+        const badge = document.getElementById('cartCountBadge');
+        const totalItems = APP_STATE.cart.reduce((sum, item) => sum + item.qty, 0);
+        badge.textContent = totalItems;
+      }
+
+      function populateCitySelect() {
+        const select = document.getElementById('selectCity');
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">Selecione sua localidade...</option>' + 
+          APP_STATE.cities.map(c => `
+            <option value="${c.id}" ${c.id === currentVal ? 'selected' : ''}>
+              ${window.pdmEscapeHtml(c.nome)} (${formatBRL(c.taxa)})
+            </option>
+          `).join('');
+      }
+
+      function setDeliveryType(type) {
+        APP_STATE.deliveryType = type;
+        const btnLocal = document.getElementById('btnDeliveryLocal');
+        const btnPickup = document.getElementById('btnDeliveryPickup');
+        const addressGroup = document.getElementById('deliveryAddressGroup');
+
+        if (type === 'local') {
+          btnLocal.classList.add('active');
+          btnPickup.classList.remove('active');
+          addressGroup.style.display = 'block';
+        } else {
+          btnLocal.classList.remove('active');
+          btnPickup.classList.add('active');
+          addressGroup.style.display = 'none';
+        }
+
+        updateCartUI();
+      }
+
+      function handleApplyCoupon() {
+        const input = document.getElementById('inputCoupon');
+        const code = input.value.trim();
+        const feedback = document.getElementById('couponFeedback');
+
+        if (!code) {
+          feedback.textContent = 'Digite o código do cupom.';
+          feedback.className = 'coupon-message error';
+          return;
+        }
+
+        // Calcula subtotal atual em centavos para validação
+        const subtotalInCents = APP_STATE.cart.reduce((sum, item) => sum + (item.precoInCents * item.qty), 0);
+        const res = window.DB.validateCoupon(code, subtotalInCents);
+
+        if (res.valid) {
+          APP_STATE.appliedCoupon = res.coupon;
+          feedback.textContent = res.message;
+          feedback.className = 'coupon-message success';
+        } else {
+          APP_STATE.appliedCoupon = null;
+          feedback.textContent = res.message;
+          feedback.className = 'coupon-message error';
+        }
+
+        updateCartUI();
+      }
+
+      function updateCartUI() {
+        updateCartBadge();
+        const itemsList = document.getElementById('cartItemsList');
+        const emptyState = document.getElementById('cartEmptyState');
+        const checkoutDetails = document.getElementById('cartCheckoutDetails');
+        const footer = document.getElementById('cartFooter');
+
+        if (APP_STATE.cart.length === 0) {
+          itemsList.innerHTML = '';
+          emptyState.style.display = 'block';
+          checkoutDetails.style.display = 'none';
+          footer.style.display = 'none';
+          return;
+        }
+
+        emptyState.style.display = 'none';
+        checkoutDetails.style.display = 'block';
+        footer.style.display = 'block';
+
+        // Renderiza itens
+        itemsList.innerHTML = APP_STATE.cart.map((item, idx) => `
+          <div class="cart-item">
+            <img 
+              src="${window.pdmEscapeHtml(item.image)}" 
+              alt="${window.pdmEscapeHtml(item.nome)}" 
+              class="cart-item-thumb"
+              onerror="this.onerror=null; this.src='${PLACEHOLDER_SVG}';"
+            >
+            <div class="cart-item-info">
+              <h5 class="cart-item-title">${window.pdmEscapeHtml(item.nome)}</h5>
+              ${item.variation ? `<div class="cart-item-variation">Opção: ${window.pdmEscapeHtml(item.variation)}</div>` : ''}
+              <div class="cart-item-price">${formatBRL(item.preco)}</div>
+              <div class="cart-item-qty">
+                <button type="button" class="qty-btn" onclick="window.changeCartQty(${idx}, -1)" aria-label="Diminuir">-</button>
+                <span class="qty-val">${item.qty}</span>
+                <button type="button" class="qty-btn" onclick="window.changeCartQty(${idx}, 1)" aria-label="Aumentar">+</button>
+              </div>
+            </div>
+            <button type="button" class="cart-item-remove" onclick="window.removeFromCart(${idx})" aria-label="Remover">
+              &times;
+            </button>
+          </div>
+        `).join('');
+
+        // CÁLCULOS EM CENTAVOS (Prevenção de erro de ponto flutuante)
+        const subtotalInCents = APP_STATE.cart.reduce((sum, item) => sum + (item.precoInCents * item.qty), 0);
+
+        // Desconto do cupom
+        let discountInCents = 0;
+        if (APP_STATE.appliedCoupon) {
+          if (APP_STATE.appliedCoupon.tipo === 'percentual') {
+            const pct = Math.min(100, Math.max(0, APP_STATE.appliedCoupon.valor));
+            discountInCents = Math.round((subtotalInCents * pct) / 100);
+          } else {
+            discountInCents = Math.min(subtotalInCents, Math.round(APP_STATE.appliedCoupon.valor * 100));
+          }
+        }
+
+        // Frete
+        let shippingInCents = 0;
+        if (APP_STATE.deliveryType === 'local' && APP_STATE.selectedCityId) {
+          const city = APP_STATE.cities.find(c => c.id === APP_STATE.selectedCityId);
+          if (city) {
+            shippingInCents = Math.round(city.taxa * 100);
+          }
+        }
+
+        const totalInCents = Math.max(0, subtotalInCents - discountInCents + shippingInCents);
+
+        // Atualiza interface do resumo
+        document.getElementById('summarySubtotal').textContent = formatBRL(subtotalInCents / 100);
+        
+        const rowDiscount = document.getElementById('rowDiscount');
+        if (discountInCents > 0) {
+          rowDiscount.style.display = 'flex';
+          document.getElementById('summaryDiscount').textContent = `- ${formatBRL(discountInCents / 100)}`;
+        } else {
+          rowDiscount.style.display = 'none';
+        }
+
+        document.getElementById('summaryShipping').textContent = (APP_STATE.deliveryType === 'pickup') 
+          ? 'Grátis (Retirada)' 
+          : (shippingInCents > 0 ? formatBRL(shippingInCents / 100) : 'A selecionar');
+
+        document.getElementById('summaryTotal').textContent = formatBRL(totalInCents / 100);
+      }
+
+      // --- 8. CHECKOUT WHATSAPP (SEM PIX / QR CODE) ---
+      function handleWhatsappCheckout() {
+        if (APP_STATE.cart.length === 0) {
+          alert('Sua sacola está vazia.');
+          return;
+        }
+
+        // Validação de Entrega
+        const clientName = document.getElementById('inputClientName').value.trim() || 'Cliente';
+        const notes = document.getElementById('inputNotes').value.trim();
+        let deliveryInfoText = '';
+
+        if (APP_STATE.deliveryType === 'local') {
+          if (!APP_STATE.selectedCityId) {
+            alert('Por favor, selecione sua cidade/região para a entrega.');
+            document.getElementById('selectCity').focus();
+            return;
+          }
+          const address = document.getElementById('inputAddress').value.trim();
+          if (!address) {
+            alert('Por favor, informe seu endereço de entrega.');
+            document.getElementById('inputAddress').focus();
+            return;
+          }
+          const city = APP_STATE.cities.find(c => c.id === APP_STATE.selectedCityId);
+          deliveryInfoText = `*Entrega Local:* ${city ? city.nome : ''}\n*Endereço:* ${address}`;
+        } else {
+          deliveryInfoText = `*Modalidade:* Retirada no Local (Combinar endereço e horário)`;
+        }
+
+        // Montagem do Pedido
+        const subtotalInCents = APP_STATE.cart.reduce((sum, item) => sum + (item.precoInCents * item.qty), 0);
+        let discountInCents = 0;
+        if (APP_STATE.appliedCoupon) {
+          if (APP_STATE.appliedCoupon.tipo === 'percentual') {
+            discountInCents = Math.round((subtotalInCents * APP_STATE.appliedCoupon.valor) / 100);
+          } else {
+            discountInCents = Math.min(subtotalInCents, Math.round(APP_STATE.appliedCoupon.valor * 100));
+          }
+        }
+        let shippingInCents = 0;
+        if (APP_STATE.deliveryType === 'local' && APP_STATE.selectedCityId) {
+          const city = APP_STATE.cities.find(c => c.id === APP_STATE.selectedCityId);
+          if (city) shippingInCents = Math.round(city.taxa * 100);
+        }
+        const totalInCents = Math.max(0, subtotalInCents - discountInCents + shippingInCents);
+
+        let lines = [];
+        lines.push(`✨ *Pedido | Produtinhos da Maria* ✨`);
+        lines.push(`_Boutique Sensual & Lifestyle Adulto_\n`);
+        lines.push(`*Olá, Maria! Gostaria de finalizar meu pedido:*`);
+        lines.push(`*Nome / Apelido:* ${clientName}\n`);
+        lines.push(`📦 *ITENS ESCOLHIDOS:*`);
+
+        APP_STATE.cart.forEach((item, i) => {
+          let itemLine = `${i + 1}. *${item.nome}*`;
+          if (item.variation) {
+            itemLine += ` (Opção: ${item.variation})`;
+          }
+          itemLine += ` - ${item.qty}x ${formatBRL(item.preco)}`;
+          lines.push(itemLine);
+        });
+
+        lines.push(``);
+        lines.push(`💰 *RESUMO DO PEDIDO:*`);
+        lines.push(`- Subtotal: ${formatBRL(subtotalInCents / 100)}`);
+        if (discountInCents > 0 && APP_STATE.appliedCoupon) {
+          lines.push(`- Cupom (${APP_STATE.appliedCoupon.codigo}): - ${formatBRL(discountInCents / 100)}`);
+        }
+        lines.push(`- Frete: ${(APP_STATE.deliveryType === 'pickup') ? 'Grátis (Retirada)' : formatBRL(shippingInCents / 100)}`);
+        lines.push(`*TOTAL ESTIMADO: ${formatBRL(totalInCents / 100)}*\n`);
+
+        lines.push(`📍 *DADOS DE ENTREGA:*`);
+        lines.push(deliveryInfoText);
+        if (notes) {
+          lines.push(`*Observações:* ${notes}`);
+        }
+
+        lines.push(`\n🔒 *Aviso:* Solicito embalagem 100% discreta.`);
+        lines.push(`💬 _Forma de pagamento a combinar aqui na nossa conversa._`);
+
+        const message = lines.join('\n');
+        const phone = (APP_STATE.settings && APP_STATE.settings.whatsapp) 
+          ? APP_STATE.settings.whatsapp 
+          : '5546999416047';
+
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(message)}`;
+        
+        // Abre WhatsApp em nova aba
+        window.open(whatsappUrl, '_blank');
+      }
+
+    })();
+  </script>
+</body>
+</html>

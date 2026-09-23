@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo | Produtinhos da Maria</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0D0709">
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase Compat CDN (v9.23.0) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  
+  <script src="firebase-config.js"></script>
+
+  <style>
+    /* Estilos específicos do Admin */
+    .admin-login-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #260e19 0%, #060304 90%);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .admin-login-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--gold-aged);
+      border-radius: var(--radius-md);
+      width: 100%;
+      max-width: 420px;
+      padding: 32px;
+      box-shadow: var(--shadow-gold), var(--shadow-warm);
+      text-align: center;
+    }
+    .admin-tab-pane {
+      display: none;
+    }
+    .admin-tab-pane.active {
+      display: block;
+    }
+    .wysiwyg-preview-container {
+      position: sticky;
+      top: 90px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       Tela de Autenticação Administrativa (Login Local / Temporário)
+       ========================================================================== -->
+  <div id="adminLoginScreen" class="admin-login-screen">
+    <div class="admin-login-card">
+      <svg class="brand-icon" style="width: 48px; height: 48px; margin: 0 auto 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="10" r="3"></circle>
+        <path d="M12 13v4"></path>
+        <path d="M5 20h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"></path>
+      </svg>
+      <h2 style="font-family: var(--font-serif); font-size: 1.6rem; color: var(--rose-nude); margin-bottom: 8px;">Acesso Restrito</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+        Gestão da Loja • Produtinhos da Maria
+      </p>
+
+      <div class="demo-alert-banner" style="text-align: left; font-size: 0.78rem; background: rgba(37, 211, 102, 0.1); border-color: rgba(37, 211, 102, 0.35); color: #85E8A2;">
+        <span>🔒 <strong>Firebase Auth Conectado:</strong> Projeto <code>sexshop-43999</code> ativo com regras de segurança.</span>
+      </div>
+
+      <form id="adminLoginForm">
+        <div class="form-group" style="text-align: left;">
+          <label class="section-label" for="loginUser">E-mail de Acesso:</label>
+          <input type="email" id="loginUser" class="form-control" value="maria@gmail.com" placeholder="maria@gmail.com" required autocomplete="username">
+        </div>
+        <div class="form-group" style="text-align: left;">
+          <label class="section-label" for="loginPass">Senha:</label>
+          <input type="password" id="loginPass" class="form-control" value="maria123" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <div id="loginErrorMsg" style="color: var(--danger); font-size: 0.82rem; margin-bottom: 12px; display: none;"></div>
+        <button type="submit" id="btnLoginSubmit" class="btn-primary" style="margin-top: 10px;">Entrar no Painel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       Painel Principal (Visível pós-login)
+       ========================================================================== -->
+  <div id="adminApp" style="display: none;">
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="logo-wrapper">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="10" r="3"></circle>
+            <path d="M12 13v4"></path>
+            <path d="M5 20h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"></path>
+          </svg>
+          <h1 class="brand-title">Produtinhos <span>da Maria</span> <small style="font-size: 0.8rem; color: var(--gold-aged); font-weight: normal;">| Painel</small></h1>
+        </div>
+
+        <div class="header-actions">
+          <a href="index.html" target="_blank" class="btn-secondary" style="font-size: 0.82rem; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            Ver Catálogo
+          </a>
+          <button id="btnAdminLogout" class="btn-secondary" style="color: var(--danger); font-size: 0.82rem;">Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-container">
+      <!-- Navegação das Abas -->
+      <nav class="admin-nav" role="tablist">
+        <button class="admin-nav-btn active" data-tab="tab-products" type="button">🛍️ Produtos & Peças</button>
+        <button class="admin-nav-btn" data-tab="tab-shipping" type="button">🚚 Cidades & Taxas de Frete</button>
+        <button class="admin-nav-btn" data-tab="tab-coupons" type="button">🏷️ Cupons de Desconto</button>
+        <button class="admin-nav-btn" data-tab="tab-settings" type="button">⚙️ Configurações & WhatsApp</button>
+      </nav>
+
+      <!-- ======================================================================
+           ABA 1: PRODUTOS (Com Preview WYSIWYG ao Vivo & Links de Imagem)
+           ====================================================================== -->
+      <div id="tab-products" class="admin-tab-pane active">
+        <div class="admin-grid">
+          <!-- Coluna 1: Formulário de Produto -->
+          <div>
+            <div class="admin-card">
+              <h3 class="admin-card-title" id="formProductTitle">Adicionar Nova Peça</h3>
+
+              <form id="productForm">
+                <input type="hidden" id="prodId">
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label class="section-label" for="prodNome">Nome da Peça / Produto *</label>
+                    <input type="text" id="prodNome" class="form-control" required placeholder="Ex: Conjunto Rendado Noite de Veludo">
+                  </div>
+                  <div class="form-group">
+                    <label class="section-label" for="prodSku">Código / SKU</label>
+                    <input type="text" id="prodSku" class="form-control" placeholder="LIN-001">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="section-label" for="prodCategoria">Categoria</label>
+                  <select id="prodCategoria" class="form-control">
+                    <option value="Lingerie">🌹 Lingerie</option>
+                    <option value="Velas e Aromas">🕯️ Velas e Aromas</option>
+                    <option value="Casais e Jogos">🍷 Casais e Jogos</option>
+                    <option value="Acessórios">🖤 Acessórios</option>
+                    <option value="Cosméticos Sensuais">💄 Cosméticos Sensuais</option>
+                    <option value="Kits Presente">🎀 Kits Presente</option>
+                    <option value="Novidades">✨ Novidades</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="section-label" for="prodDescricao">Descrição Sensorial & Detalhes</label>
+                  <textarea id="prodDescricao" class="form-control" rows="3" placeholder="Descreva os materiais, toque, aroma e sensações com sofisticação..."></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label class="section-label" for="prodPrecoOriginal">Preço Original (R$) *</label>
+                    <input type="number" step="0.01" min="0" id="prodPrecoOriginal" class="form-control" required placeholder="189.90">
+                  </div>
+                  <div class="form-group">
+                    <label class="section-label" for="prodPrecoPromocional">Preço Promocional (R$)</label>
+                    <input type="number" step="0.01" min="0" id="prodPrecoPromocional" class="form-control" placeholder="159.90 (ou 0 se não houver)">
+                  </div>
+                </div>
+
+                <!-- IMAGENS POR LINK (Decisão A do Dono: Apenas URLs diretas) -->
+                <div class="form-group" style="background: rgba(13, 7, 9, 0.4); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                  <label class="section-label">Imagens do Produto (Apenas Links / URLs Diretas)</label>
+                  <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
+                    Cole URLs diretas de imagem (<code>https://...</code>). Links de pastas do Google Drive ou Instagram não são links de arquivo direto.
+                  </p>
+                  
+                  <div id="imageUrlsList">
+                    <!-- Itens de imagem por URL inseridos dinamicamente -->
+                  </div>
+
+                  <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button type="button" id="btnAddImageUrl" class="btn-secondary" style="font-size: 0.82rem;">+ Adicionar Outro Link</button>
+                    <button type="button" id="btnBulkImageUrls" class="btn-secondary" style="font-size: 0.82rem;">Colar Múltiplos Links</button>
+                  </div>
+                </div>
+
+                <!-- Variações -->
+                <div class="form-group">
+                  <label class="section-label" for="prodVariacoes">Opções / Variações (Separadas por vírgula)</label>
+                  <input type="text" id="prodVariacoes" class="form-control" placeholder="Ex: P, M, G, GG ou Baunilha, Frutas Vermelhas">
+                </div>
+
+                <!-- Estoque e Badges -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 14px;">
+                  <label style="font-size: 0.82rem; display: flex; align-items: center; gap: 8px; color: var(--text-ivory); cursor: pointer;">
+                    <input type="checkbox" id="prodNovidade"> ✨ Marcar Novidade
+                  </label>
+                  <label style="font-size: 0.82rem; display: flex; align-items: center; gap: 8px; color: var(--text-ivory); cursor: pointer;">
+                    <input type="checkbox" id="prodForaDeEstoque"> ❌ Esgotado
+                  </label>
+                  <label style="font-size: 0.82rem; display: flex; align-items: center; gap: 8px; color: var(--text-ivory); cursor: pointer;">
+                    <input type="checkbox" id="prodDestacarEstoqueBaixo"> ⚠️ Poucas Unidades
+                  </label>
+                </div>
+
+                <div class="form-group" id="groupEstoqueBaixoQtd" style="margin-top: 10px; display: none;">
+                  <label class="section-label" for="prodEstoqueBaixoQtd">Quantidade Restante:</label>
+                  <input type="number" min="1" max="99" id="prodEstoqueBaixoQtd" class="form-control" value="3">
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                  <button type="submit" id="btnSaveProduct" class="btn-primary">Salvar Peça</button>
+                  <button type="button" id="btnCancelEdit" class="btn-secondary" style="display: none;">Cancelar Edição</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Tabela de Produtos Cadastrados -->
+            <div class="admin-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 class="admin-card-title" style="margin-bottom: 0; border: none;">Peças Cadastradas (<span id="totalProductsCount">0</span>)</h3>
+                <input type="search" id="adminProductSearch" class="form-control" placeholder="Filtrar por nome ou código..." style="max-width: 240px; padding: 6px 12px;">
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Foto</th>
+                      <th>Nome / SKU</th>
+                      <th>Categoria</th>
+                      <th>Preço</th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="productsTableBody">
+                    <!-- Renderizado dinamicamente -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coluna 2: Preview WYSIWYG ao Vivo -->
+          <div>
+            <div class="wysiwyg-preview-container">
+              <div class="section-label" style="text-align: center; margin-bottom: 12px;">
+                👁️ Preview ao Vivo (Como aparecerá no Catálogo)
+              </div>
+              <div id="wysiwygPreviewBox">
+                <!-- Card renderizado em tempo real com a exata lógica do catálogo -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================================
+           ABA 2: TAXAS DE ENTREGA POR CIDADE / BAIRRO
+           ====================================================================== -->
+      <div id="tab-shipping" class="admin-tab-pane">
+        <div class="admin-card">
+          <h3 class="admin-card-title">Configurar Bairros e Taxas de Entrega</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+            Estas opções aparecerão na sacola de compras do cliente ao selecionar "Entrega Local".
+          </p>
+
+          <form id="shippingForm" style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+            <input type="hidden" id="cityId">
+            <input type="text" id="cityName" class="form-control" placeholder="Nome da Cidade / Região / Bairro" style="flex: 2; min-width: 200px;" required>
+            <input type="number" step="0.01" min="0" id="cityFee" class="form-control" placeholder="Taxa (R$)" style="flex: 1; min-width: 120px;" required>
+            <button type="submit" class="btn-primary" style="width: auto; padding: 0 24px;">Adicionar / Salvar</button>
+          </form>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Cidade / Região</th>
+                  <th>Taxa de Frete</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="citiesTableBody">
+                <!-- Cidades renderizadas dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================================
+           ABA 3: CUPONS DE DESCONTO
+           ====================================================================== -->
+      <div id="tab-coupons" class="admin-tab-pane">
+        <div class="admin-card">
+          <h3 class="admin-card-title">Gestão de Cupons de Desconto</h3>
+          
+          <form id="couponForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) 120px; gap: 12px; margin-bottom: 24px; align-items: end;">
+            <input type="hidden" id="couponId">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="section-label" for="couponCode">Código</label>
+              <input type="text" id="couponCode" class="form-control" placeholder="EX: AMOR10" style="text-transform: uppercase;" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="section-label" for="couponType">Tipo</label>
+              <select id="couponType" class="form-control">
+                <option value="percentual">Percentual (%)</option>
+                <option value="fixo">Valor Fixo (R$)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="section-label" for="couponValue">Valor</label>
+              <input type="number" step="0.01" min="0" id="couponValue" class="form-control" placeholder="10" required>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">Salvar</button>
+          </form>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Tipo</th>
+                  <th>Desconto</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="couponsTableBody">
+                <!-- Cupons renderizados dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================================
+           ABA 4: CONFIGURAÇÕES & WHATSAPP
+           ====================================================================== -->
+      <div id="tab-settings" class="admin-tab-pane">
+        <div class="admin-card" style="max-width: 680px;">
+          <h3 class="admin-card-title">Configurações de Contato e Atendimento</h3>
+
+          <form id="settingsForm">
+            <div class="form-group">
+              <label class="section-label" for="settingStoreName">Nome da Loja</label>
+              <input type="text" id="settingStoreName" class="form-control" value="Produtinhos da Maria" required>
+            </div>
+
+            <div class="form-group">
+              <label class="section-label" for="settingWhatsapp">Número do WhatsApp (com DDI e DDD)</label>
+              <input type="tel" id="settingWhatsapp" class="form-control" placeholder="5546999416047" required>
+              <small style="font-size: 0.75rem; color: var(--text-muted);">
+                Apenas números com código do país e DDD (Ex: 5546999416047).
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label class="section-label" for="settingWelcome">Mensagem de Boas-Vindas</label>
+              <textarea id="settingWelcome" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="section-label" for="settingDiscreetNotice">Texto de Garantia de Embalagem Discreta</label>
+              <textarea id="settingDiscreetNotice" class="form-control" rows="2"></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary" style="margin-top: 10px; width: auto; padding: 0 30px;">
+              Salvar Configurações
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal para colar múltiplos links de uma vez -->
+  <div id="modalBulkUrls" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3 class="card-title" style="margin-bottom: 8px;">Colar Múltiplos Links de Imagem</h3>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+        Insira um link direto de imagem por linha (iniciando com <code>http://</code> ou <code>https://</code>):
+      </p>
+      <textarea id="textareaBulkUrls" class="form-control" rows="6" placeholder="https://exemplo.com/foto1.jpg&#10;https://exemplo.com/foto2.jpg"></textarea>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+        <button type="button" class="btn-secondary" id="btnCancelBulkUrls">Cancelar</button>
+        <button type="button" class="btn-primary" id="btnConfirmBulkUrls" style="width: auto; padding: 0 20px;">Aplicar Links</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       Lógica do Painel Administrativo
+       ========================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      const PLACEHOLDER_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' width='100%25' height='100%25'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%2338101E'/%3E%3Cstop offset='100%25' stop-color='%230D0709'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grad)'/%3E%3Ccircle cx='100' cy='90' r='18' stroke='%23C9A24D' stroke-width='4' fill='none'/%3E%3Cpath d='M96 108h8l3 34h-14z' fill='%23C9A24D'/%3E%3Ctext x='100' y='165' text-anchor='middle' fill='%23B8A8A4' font-family='sans-serif' font-size='12' letter-spacing='1'%3EIMAGEM RESERVADA%3C/text%3E%3C/svg%3E";
+
+      let currentImageUrls = [];
+
+      function formatBRL(amount) {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        checkAuth();
+        setupNavigation();
+        setupForms();
+        setupImageUrlsInput();
+        renderWysiwygPreview();
+      });
+
+      // --- AUTENTICAÇÃO (DEMONSTRAÇÃO / TEMPORÁRIA) ---
+      function checkAuth() {
+        const session = window.DB ? window.DB.getAdminSession() : null;
+        const loginScreen = document.getElementById('adminLoginScreen');
+        const adminApp = document.getElementById('adminApp');
+
+        if (session && session.role === 'admin') {
+          loginScreen.style.display = 'none';
+          adminApp.style.display = 'block';
+          loadAllData();
+        } else {
+          loginScreen.style.display = 'flex';
+          adminApp.style.display = 'none';
+        }
+      }
+
+      document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = document.getElementById('loginUser').value;
+        const pass = document.getElementById('loginPass').value;
+        const errEl = document.getElementById('loginErrorMsg');
+        const btnSubmit = document.getElementById('btnLoginSubmit');
+
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Autenticando...';
+        errEl.style.display = 'none';
+
+        try {
+          const res = await window.DB.adminLogin(user, pass);
+          if (res.success) {
+            checkAuth();
+          } else {
+            errEl.textContent = res.message || 'E-mail ou senha incorretos.';
+            errEl.style.display = 'block';
+          }
+        } catch (err) {
+          errEl.textContent = 'Erro ao processar login: ' + err.message;
+          errEl.style.display = 'block';
+        } finally {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Entrar no Painel';
+        }
+      });
+
+      document.getElementById('btnAdminLogout').addEventListener('click', async () => {
+        await window.DB.adminLogout();
+        checkAuth();
+      });
+
+      // --- NAVEGAÇÃO DE ABAS ---
+      function setupNavigation() {
+        const tabBtns = document.querySelectorAll('.admin-nav-btn');
+        const tabPanes = document.querySelectorAll('.admin-tab-pane');
+
+        tabBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+
+            btn.classList.add('active');
+            const target = btn.dataset.tab;
+            const targetPane = document.getElementById(target);
+            if (targetPane) targetPane.classList.add('active');
+          });
+        });
+      }
+
+      // --- CARREGAMENTO DE DADOS ---
+      function loadAllData() {
+        renderProductsTable();
+        renderCitiesTable();
+        renderCouponsTable();
+        loadSettingsForm();
+      }
+
+      // --- IMAGENS POR LINK (Decisão A: Sem Upload/Canvas) ---
+      function setupImageUrlsInput() {
+        const container = document.getElementById('imageUrlsList');
+        const btnAdd = document.getElementById('btnAddImageUrl');
+        const btnBulk = document.getElementById('btnBulkImageUrls');
+        const modalBulk = document.getElementById('modalBulkUrls');
+        const btnCancelBulk = document.getElementById('btnCancelBulkUrls');
+        const btnConfirmBulk = document.getElementById('btnConfirmBulkUrls');
+        const textareaBulk = document.getElementById('textareaBulkUrls');
+
+        btnAdd.addEventListener('click', () => {
+          currentImageUrls.push('');
+          renderImageInputs();
+        });
+
+        btnBulk.addEventListener('click', () => {
+          textareaBulk.value = currentImageUrls.filter(Boolean).join('\n');
+          modalBulk.classList.add('open');
+        });
+
+        btnCancelBulk.addEventListener('click', () => {
+          modalBulk.classList.remove('open');
+        });
+
+        btnConfirmBulk.addEventListener('click', () => {
+          const lines = textareaBulk.value.split('\n')
+            .map(l => l.trim())
+            .filter(l => window.pdmIsValidImageUrl(l));
+          currentImageUrls = lines.length > 0 ? lines : [''];
+          modalBulk.classList.remove('open');
+          renderImageInputs();
+          renderWysiwygPreview();
+        });
+
+        // Adiciona um campo vazio inicial se não houver
+        if (currentImageUrls.length === 0) {
+          currentImageUrls.push('');
+        }
+        renderImageInputs();
+      }
+
+      function renderImageInputs() {
+        const container = document.getElementById('imageUrlsList');
+        container.innerHTML = currentImageUrls.map((url, index) => `
+          <div class="image-link-item">
+            <img 
+              src="${window.pdmEscapeHtml(url || PLACEHOLDER_SVG)}" 
+              class="image-link-thumb" 
+              alt="Miniatura"
+              onerror="this.onerror=null; this.src='${PLACEHOLDER_SVG}';"
+            >
+            <input 
+              type="url" 
+              class="form-control" 
+              placeholder="https://exemplo.com/imagem.jpg" 
+              value="${window.pdmEscapeHtml(url)}"
+              oninput="window.updateImageUrl(${index}, this.value)"
+              style="flex-grow: 1;"
+            >
+            <button type="button" class="btn-secondary" style="padding: 0 10px; color: var(--danger);" onclick="window.removeImageUrl(${index})" title="Remover link">&times;</button>
+          </div>
+        `).join('');
+      }
+
+      window.updateImageUrl = function (index, value) {
+        currentImageUrls[index] = value.trim();
+        renderWysiwygPreview();
+      };
+
+      window.removeImageUrl = function (index) {
+        currentImageUrls.splice(index, 1);
+        if (currentImageUrls.length === 0) currentImageUrls.push('');
+        renderImageInputs();
+        renderWysiwygPreview();
+      };
+
+      // --- WYSIWYG PREVIEW EM TEMPO REAL ---
+      function renderWysiwygPreview() {
+        const previewBox = document.getElementById('wysiwygPreviewBox');
+        if (!previewBox) return;
+
+        const nome = document.getElementById('prodNome').value.trim() || 'Nome da Peça Exclusiva';
+        const categoria = document.getElementById('prodCategoria').value;
+        const descricao = document.getElementById('prodDescricao').value.trim() || 'Descrição dos detalhes refinados e sensoriais do produto...';
+        const precoOriginal = parseFloat(document.getElementById('prodPrecoOriginal').value) || 0;
+        const precoPromocional = parseFloat(document.getElementById('prodPrecoPromocional').value) || 0;
+        const foraDeEstoque = document.getElementById('prodForaDeEstoque').checked;
+        const novidade = document.getElementById('prodNovidade').checked;
+        const destacarEstoqueBaixo = document.getElementById('prodDestacarEstoqueBaixo').checked;
+        const estoqueBaixoQtd = parseInt(document.getElementById('prodEstoqueBaixoQtd').value, 10) || 3;
+
+        const hasPromo = precoPromocional > 0 && precoPromocional < precoOriginal;
+        const currentPrice = hasPromo ? precoPromocional : precoOriginal;
+        let discountPercent = 0;
+        if (hasPromo && precoOriginal > 0) {
+          discountPercent = Math.round(((precoOriginal - precoPromocional) / precoOriginal) * 100);
+        }
+
+        const validImages = currentImageUrls.filter(u => window.pdmIsValidImageUrl(u));
+        const previewImg = validImages.length > 0 ? validImages[0] : PLACEHOLDER_SVG;
+
+        let badges = '';
+        if (foraDeEstoque) {
+          badges += `<span class="badge badge-soldout">Esgotado</span>`;
+        } else {
+          if (hasPromo && discountPercent > 0) {
+            badges += `<span class="badge badge-discount">-${discountPercent}% OFF</span>`;
+          }
+          if (novidade) {
+            badges += `<span class="badge badge-new">✨ Novidade</span>`;
+          }
+          if (destacarEstoqueBaixo && estoqueBaixoQtd > 0) {
+            badges += `<span class="badge badge-stock">Últimas ${estoqueBaixoQtd} un.</span>`;
+          }
+        }
+
+        previewBox.innerHTML = `
+          <article class="product-card" style="max-width: 320px; margin: 0 auto;">
+            <div class="card-badges">${badges}</div>
+            <div class="card-slider-wrapper">
+              <img 
+                src="${window.pdmEscapeHtml(previewImg)}" 
+                alt="Preview" 
+                class="product-image admin-preview-img"
+                onerror="this.onerror=null; this.src='${PLACEHOLDER_SVG}';"
+              >
+            </div>
+            <div class="card-content">
+              <span class="card-category">${window.pdmEscapeHtml(categoria)}</span>
+              <h4 class="card-title">${window.pdmEscapeHtml(nome)}</h4>
+              <p class="card-desc">${window.pdmEscapeHtml(descricao)}</p>
+              <div class="card-prices">
+                <span class="price-current">${formatBRL(currentPrice)}</span>
+                ${hasPromo ? `<span class="price-old">${formatBRL(precoOriginal)}</span>` : ''}
+              </div>
+              <button type="button" class="btn-primary" ${foraDeEstoque ? 'disabled' : ''}>
+                ${foraDeEstoque ? 'Indisponível' : 'Adicionar à Sacola'}
+              </button>
+            </div>
+          </article>
+        `;
+      }
+
+      // --- CONFIGURAÇÃO DOS FORMULÁRIOS ---
+      function setupForms() {
+        // Escuta inputs do formulário de produto para atualizar preview ao vivo
+        ['prodNome', 'prodCategoria', 'prodDescricao', 'prodPrecoOriginal', 'prodPrecoPromocional', 'prodEstoqueBaixoQtd'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('input', renderWysiwygPreview);
+        });
+        ['prodForaDeEstoque', 'prodNovidade', 'prodDestacarEstoqueBaixo'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.addEventListener('change', () => {
+              if (id === 'prodDestacarEstoqueBaixo') {
+                document.getElementById('groupEstoqueBaixoQtd').style.display = el.checked ? 'block' : 'none';
+              }
+              renderWysiwygPreview();
+            });
+          }
+        });
+
+        // Submissão do Formulário de Produto
+        document.getElementById('productForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const prodId = document.getElementById('prodId').value;
+          const nome = document.getElementById('prodNome').value.trim();
+          const sku = document.getElementById('prodSku').value.trim();
+          const categoria = document.getElementById('prodCategoria').value;
+          const descricao = document.getElementById('prodDescricao').value.trim();
+          const precoOriginal = parseFloat(document.getElementById('prodPrecoOriginal').value) || 0;
+          const precoPromocional = parseFloat(document.getElementById('prodPrecoPromocional').value) || 0;
+          const variacoesRaw = document.getElementById('prodVariacoes').value;
+          const variacoes = variacoesRaw.split(',').map(v => v.trim()).filter(Boolean);
+          const foraDeEstoque = document.getElementById('prodForaDeEstoque').checked;
+          const novidade = document.getElementById('prodNovidade').checked;
+          const destacarEstoqueBaixo = document.getElementById('prodDestacarEstoqueBaixo').checked;
+          const estoqueBaixoQtd = parseInt(document.getElementById('prodEstoqueBaixoQtd').value, 10) || 0;
+
+          // Validação de Preço Promocional
+          if (precoPromocional > 0 && precoPromocional >= precoOriginal) {
+            alert('Atenção: O preço promocional deve ser estritamente menor que o preço original.');
+            document.getElementById('prodPrecoPromocional').focus();
+            return;
+          }
+
+          // Verificação de SKU único (se preenchido)
+          if (sku) {
+            const allProducts = window.DB.getProducts();
+            const skuConflict = allProducts.find(p => p.sku && p.sku.toUpperCase() === sku.toUpperCase() && p.id !== prodId);
+            if (skuConflict) {
+              alert(`Já existe outro produto cadastrado com o código/SKU "${sku}". Por favor, utilize um código único.`);
+              document.getElementById('prodSku').focus();
+              return;
+            }
+          }
+
+          // Filtra URLs válidas
+          const validImages = currentImageUrls.filter(u => window.pdmIsValidImageUrl(u));
+          if (validImages.length === 0) {
+            const usePlaceholder = confirm('Nenhuma URL direta de imagem válida foi informada. Deseja salvar utilizando a imagem reservada padrão da loja?');
+            if (!usePlaceholder) return;
+          }
+
+          // Proteção contra duplo clique
+          const btnSubmit = document.getElementById('btnSaveProduct');
+          btnSubmit.disabled = true;
+          btnSubmit.textContent = 'Salvando...';
+
+          try {
+            const productData = {
+              id: prodId || undefined,
+              sku,
+              nome,
+              categoria,
+              descricao,
+              precoOriginal,
+              precoPromocional,
+              imagens: validImages,
+              variacoes,
+              foraDeEstoque,
+              novidade,
+              destacarEstoqueBaixo,
+              estoqueBaixoQtd
+            };
+
+            window.DB.saveProduct(productData);
+            alert('Peça salva com sucesso!');
+            resetProductForm();
+            renderProductsTable();
+          } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Salvar Peça';
+          }
+        });
+
+        document.getElementById('btnCancelEdit').addEventListener('click', resetProductForm);
+
+        // Formulário de Frete / Cidade
+        document.getElementById('shippingForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const id = document.getElementById('cityId').value;
+          const nome = document.getElementById('cityName').value.trim();
+          const taxa = parseFloat(document.getElementById('cityFee').value) || 0;
+
+          window.DB.saveCity({ id: id || undefined, nome, taxa });
+          document.getElementById('cityId').value = '';
+          document.getElementById('cityName').value = '';
+          document.getElementById('cityFee').value = '';
+          renderCitiesTable();
+        });
+
+        // Formulário de Cupons
+        document.getElementById('couponForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const id = document.getElementById('couponId').value;
+          const codigo = document.getElementById('couponCode').value.trim();
+          const tipo = document.getElementById('couponType').value;
+          const valor = parseFloat(document.getElementById('couponValue').value) || 0;
+
+          window.DB.saveCoupon({ id: id || undefined, codigo, tipo, valor, ativo: true });
+          document.getElementById('couponId').value = '';
+          document.getElementById('couponCode').value = '';
+          document.getElementById('couponValue').value = '';
+          renderCouponsTable();
+        });
+
+        // Formulário de Configurações
+        document.getElementById('settingsForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const nomeLoja = document.getElementById('settingStoreName').value.trim();
+          const whatsapp = document.getElementById('settingWhatsapp').value.trim();
+          const mensagemBoasVindas = document.getElementById('settingWelcome').value.trim();
+          const avisoEmbalagem = document.getElementById('settingDiscreetNotice').value.trim();
+
+          window.DB.saveSettings({ nomeLoja, whatsapp, mensagemBoasVindas, avisoEmbalagem });
+          alert('Configurações salvas com sucesso!');
+        });
+      }
+
+      function resetProductForm() {
+        document.getElementById('productForm').reset();
+        document.getElementById('prodId').value = '';
+        document.getElementById('formProductTitle').textContent = 'Adicionar Nova Peça';
+        document.getElementById('btnCancelEdit').style.display = 'none';
+        document.getElementById('groupEstoqueBaixoQtd').style.display = 'none';
+        currentImageUrls = [''];
+        renderImageInputs();
+        renderWysiwygPreview();
+      }
+
+      // --- RENDERIZAÇÃO DAS TABELAS ---
+      function renderProductsTable() {
+        const tbody = document.getElementById('productsTableBody');
+        const countEl = document.getElementById('totalProductsCount');
+        const products = window.DB.getProducts();
+
+        countEl.textContent = products.length;
+
+        tbody.innerHTML = products.map(p => {
+          const img = (Array.isArray(p.imagens) && p.imagens.length > 0) ? p.imagens[0] : PLACEHOLDER_SVG;
+          const preco = (p.precoPromocional > 0 && p.precoPromocional < p.precoOriginal)
+            ? `<strong>${formatBRL(p.precoPromocional)}</strong> <small style="text-decoration: line-through; color: var(--text-subtle);">${formatBRL(p.precoOriginal)}</small>`
+            : `<strong>${formatBRL(p.precoOriginal)}</strong>`;
+
+          return `
+            <tr>
+              <td>
+                <img src="${window.pdmEscapeHtml(img)}" class="image-link-thumb" onerror="this.onerror=null; this.src='${PLACEHOLDER_SVG}';">
+              </td>
+              <td>
+                <strong>${window.pdmEscapeHtml(p.nome)}</strong><br>
+                <small style="color: var(--text-muted);">${window.pdmEscapeHtml(p.sku || 'Sem SKU')}</small>
+              </td>
+              <td>${window.pdmEscapeHtml(p.categoria)}</td>
+              <td>${preco}</td>
+              <td>
+                ${p.foraDeEstoque ? '<span class="badge badge-soldout">Esgotado</span>' : '<span style="color: #4CAF50;">Disponível</span>'}
+              </td>
+              <td>
+                <button type="button" class="btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="window.editProduct('${p.id}')">Editar</button>
+                <button type="button" class="btn-secondary" style="padding: 4px 8px; font-size: 0.75rem; color: var(--danger);" onclick="window.deleteProduct('${p.id}')">Excluir</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      window.editProduct = function (id) {
+        const product = window.DB.getProducts().find(p => p.id === id);
+        if (!product) return;
+
+        document.getElementById('prodId').value = product.id;
+        document.getElementById('prodNome').value = product.nome;
+        document.getElementById('prodSku').value = product.sku || '';
+        document.getElementById('prodCategoria').value = product.categoria;
+        document.getElementById('prodDescricao').value = product.descricao || '';
+        document.getElementById('prodPrecoOriginal').value = product.precoOriginal;
+        document.getElementById('prodPrecoPromocional').value = product.precoPromocional || '';
+        document.getElementById('prodVariacoes').value = (product.variacoes || []).join(', ');
+        document.getElementById('prodForaDeEstoque').checked = !!product.foraDeEstoque;
+        document.getElementById('prodNovidade').checked = !!product.novidade;
+        document.getElementById('prodDestacarEstoqueBaixo').checked = !!product.destacarEstoqueBaixo;
+        document.getElementById('prodEstoqueBaixoQtd').value = product.estoqueBaixoQtd || 3;
+        document.getElementById('groupEstoqueBaixoQtd').style.display = product.destacarEstoqueBaixo ? 'block' : 'none';
+
+        currentImageUrls = Array.isArray(product.imagens) && product.imagens.length > 0 ? [...product.imagens] : [''];
+        renderImageInputs();
+
+        document.getElementById('formProductTitle').textContent = 'Editar Peça: ' + product.nome;
+        document.getElementById('btnCancelEdit').style.display = 'inline-flex';
+        renderWysiwygPreview();
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      window.deleteProduct = function (id) {
+        if (confirm('Tem certeza de que deseja remover esta peça?')) {
+          window.DB.deleteProduct(id);
+          renderProductsTable();
+          resetProductForm();
+        }
+      };
+
+      function renderCitiesTable() {
+        const tbody = document.getElementById('citiesTableBody');
+        const cities = window.DB.getCities();
+        tbody.innerHTML = cities.map(c => `
+          <tr>
+            <td><strong>${window.pdmEscapeHtml(c.nome)}</strong></td>
+            <td>${formatBRL(c.taxa)}</td>
+            <td>
+              <button type="button" class="btn-secondary" style="padding: 4px 8px; font-size: 0.75rem; color: var(--danger);" onclick="window.deleteCity('${c.id}')">Excluir</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      window.deleteCity = function (id) {
+        if (confirm('Remover esta localidade de entrega?')) {
+          window.DB.deleteCity(id);
+          renderCitiesTable();
+        }
+      };
+
+      function renderCouponsTable() {
+        const tbody = document.getElementById('couponsTableBody');
+        const coupons = window.DB.getCoupons();
+        tbody.innerHTML = coupons.map(c => `
+          <tr>
+            <td><code>${window.pdmEscapeHtml(c.codigo)}</code></td>
+            <td>${c.tipo === 'percentual' ? 'Percentual (%)' : 'Fixo (R$)'}</td>
+            <td>${c.tipo === 'percentual' ? c.valor + '%' : formatBRL(c.valor)}</td>
+            <td>${c.ativo ? '<span style="color:#4CAF50;">Ativo</span>' : '<span style="color:var(--text-subtle);">Inativo</span>'}</td>
+            <td>
+              <button type="button" class="btn-secondary" style="padding: 4px 8px; font-size: 0.75rem; color: var(--danger);" onclick="window.deleteCoupon('${c.id}')">Excluir</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      window.deleteCoupon = function (id) {
+        if (confirm('Remover este cupom de desconto?')) {
+          window.DB.deleteCoupon(id);
+          renderCouponsTable();
+        }
+      };
+
+      function loadSettingsForm() {
+        const s = window.DB.getSettings();
+        document.getElementById('settingStoreName').value = s.nomeLoja || '';
+        document.getElementById('settingWhatsapp').value = s.whatsapp || '';
+        document.getElementById('settingWelcome').value = s.mensagemBoasVindas || '';
+        document.getElementById('settingDiscreetNotice').value = s.avisoEmbalagem || '';
+      }
+
+    })();
+  </script>
+</body>
+</html>
