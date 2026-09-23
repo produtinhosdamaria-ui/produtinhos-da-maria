@@ -1,22 +1,8 @@
 {
   "rules": {
     "pdm_data": {
-      "products": {
-        ".read": true,
-        ".write": "auth != null"
-      },
-      "cities": {
-        ".read": true,
-        ".write": "auth != null"
-      },
-      "coupons": {
-        ".read": true,
-        ".write": "auth != null"
-      },
-      "settings": {
-        ".read": true,
-        ".write": "auth != null"
-      }
+      ".read": true,
+      ".write": "auth != null"
     }
   }
 }
