@@ -63,7 +63,7 @@
             <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
             <line x1="1" y1="1" x2="23" y2="23"></line>
           </svg>
-          <span id="discreteLabel">Modo Discreto</span>
+          <span id="discreteLabel" class="nav-btn-text">Modo Discreto</span>
         </button>
 
         <!-- Botão Painel Admin -->
@@ -72,7 +72,7 @@
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
-          <span class="admin-btn-text">Painel</span>
+          <span class="admin-btn-text nav-btn-text">Painel</span>
         </a>
 
         <!-- Botão Abrir Sacola -->
@@ -82,7 +82,7 @@
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <path d="M16 10a4 4 0 0 1-8 0"></path>
           </svg>
-          <span class="cart-btn-text">Sacola</span>
+          <span class="cart-btn-text nav-btn-text">Sacola</span>
           <span id="cartCountBadge" class="cart-counter">0</span>
         </button>
       </div>
@@ -110,18 +110,56 @@
   </section>
 
   <!-- ==========================================================================
-       Barra de Categorias
+       Categorias Verticais (Uma abaixo da outra)
        ========================================================================== -->
-  <nav class="categories-bar" aria-label="Categorias de Produtos">
-    <ul class="categories-list" id="categoryList">
-      <li><button class="category-pill active" data-cat="all" type="button">✨ Todas as Peças</button></li>
-      <li><button class="category-pill" data-cat="Lingerie" type="button">🌹 Lingerie</button></li>
-      <li><button class="category-pill" data-cat="Velas e Aromas" type="button">🕯️ Velas & Aromas</button></li>
-      <li><button class="category-pill" data-cat="Casais e Jogos" type="button">🍷 Casais & Jogos</button></li>
-      <li><button class="category-pill" data-cat="Acessórios" type="button">🖤 Acessórios</button></li>
-      <li><button class="category-pill" data-cat="Cosméticos Sensuais" type="button">💄 Cosméticos Sensuais</button></li>
-      <li><button class="category-pill" data-cat="Kits Presente" type="button">🎀 Kits Presente</button></li>
-    </ul>
+  <nav class="categories-section" aria-label="Categorias de Produtos">
+    <div class="categories-container">
+      <h3 class="categories-heading">Categorias da Boutique</h3>
+      <ul class="categories-list" id="categoryList">
+        <li>
+          <button class="category-pill active" data-cat="all" type="button">
+            <span class="cat-pill-label">✨ Todas as Peças</span>
+            <span class="cat-pill-arrow">&rsaquo;</span>
+          </button>
+        </li>
+        <li>
+          <button class="category-pill" data-cat="Lingerie" type="button">
+            <span class="cat-pill-label">🌹 Lingerie</span>
+            <span class="cat-pill-arrow">&rsaquo;</span>
+          </button>
+        </li>
+        <li>
+          <button class="category-pill" data-cat="Velas e Aromas" type="button">
+            <span class="cat-pill-label">🕯️ Velas & Aromas</span>
+            <span class="cat-pill-arrow">&rsaquo;</span>
+          </button>
+        </li>
+        <li>
+          <button class="category-pill" data-cat="Casais e Jogos" type="button">
+            <span class="cat-pill-label">🍷 Casais & Jogos</span>
+            <span class="cat-pill-arrow">&rsaquo;</span>
+          </button>
+        </li>
+        <li>
+          <button class="category-pill" data-cat="Acessórios" type="button">
+            <span class="cat-pill-label">🖤 Acessórios</span>
+            <span class="cat-pill-arrow">&rsaquo;</span>
+          </button>
+        </li>
+        <li>
+          <button class="category-pill" data-cat="Cosméticos Sensuais" type="button">
+            <span class="cat-pill-label">💄 Cosméticos Sensuais</span>
+            <span class="cat-pill-arrow">&rsaquo;</span>
+          </button>
+        </li>
+        <li>
+          <button class="category-pill" data-cat="Kits Presente" type="button">
+            <span class="cat-pill-label">🎀 Kits Presente</span>
+            <span class="cat-pill-arrow">&rsaquo;</span>
+          </button>
+        </li>
+      </ul>
+    </div>
   </nav>
 
   <!-- ==========================================================================
@@ -308,7 +346,7 @@
       </p>
 
       <!-- Contato Direto & Atendimento WhatsApp / Instagram -->
-      <div style="margin: 16px 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
+      <div class="footer-contact-wrapper" style="margin: 16px 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
         <span style="font-size: 0.86rem; color: var(--rose-nude); width: 100%; margin-bottom: 2px;">Dúvidas ou atendimento discreto? Fale comigo:</span>
         <a href="https://wa.me/5546999416047?text=Ol%C3%A1%2C%20Maria!%20Gostaria%20de%20tirar%20uma%20d%C3%BAvida%20sobre%20os%20produtos." target="_blank" rel="noopener noreferrer" style="color: var(--gold-aged); font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 6px 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); background: rgba(201, 162, 77, 0.08); transition: var(--transition-normal);">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -508,6 +546,12 @@
             btn.classList.add('active');
             APP_STATE.selectedCategory = btn.dataset.cat;
             renderCatalog();
+
+            // Scroll suave até o início dos produtos para facilitar a navegação no celular
+            const targetCatalog = document.getElementById('currentSectionTitle');
+            if (targetCatalog) {
+              targetCatalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
           });
         });
 
