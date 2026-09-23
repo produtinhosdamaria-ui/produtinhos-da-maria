@@ -1523,3 +1523,120 @@ body.discrete-mode .lightbox-img:hover {
     font-size: 0.88rem;
   }
 }
+
+/* ==========================================================================
+   Feedback Visual de Adição à Sacola (Badge Bump & Toast Flutuante)
+   ========================================================================== */
+@keyframes cartBadgeBump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.45); background: var(--gold-aged); color: #0D0709; box-shadow: 0 0 12px var(--gold-glow); }
+  100% { transform: scale(1); }
+}
+
+.cart-counter.badge-bump {
+  animation: cartBadgeBump 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes cartBtnGlow {
+  0% { border-color: var(--border-subtle); box-shadow: none; }
+  50% { border-color: var(--gold-aged); box-shadow: 0 0 15px var(--gold-glow); background: rgba(90, 15, 36, 0.45); }
+  100% { border-color: var(--border-subtle); box-shadow: none; }
+}
+
+.btn-icon.btn-cart-glow {
+  animation: cartBtnGlow 600ms ease-out;
+}
+
+/* Notificação Toast Flutuante */
+.cart-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  background: rgba(22, 10, 15, 0.95);
+  border: 1px solid var(--gold-aged);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 16px rgba(201, 162, 77, 0.25);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 12px 16px;
+  opacity: 0;
+  transform: translateY(24px) scale(0.96);
+  pointer-events: none;
+  transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 92vw;
+  width: 360px;
+}
+
+.cart-toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.cart-toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cart-toast-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cart-toast-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cart-toast-text strong {
+  font-size: 0.88rem;
+  color: var(--text-ivory);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.cart-toast-text span {
+  font-size: 0.78rem;
+  color: var(--gold-aged);
+  letter-spacing: 0.3px;
+}
+
+.cart-toast-btn {
+  background: var(--wine-deep);
+  color: var(--gold-hover);
+  border: 1px solid var(--gold-aged);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-height: 32px;
+  min-width: auto;
+  white-space: nowrap;
+  transition: var(--transition-normal);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.cart-toast-btn:hover {
+  background: var(--gold-aged);
+  color: #0D0709;
+}
+
+@media (max-width: 600px) {
+  .cart-toast {
+    left: 16px;
+    right: 16px;
+    bottom: 20px;
+    width: auto;
+    max-width: calc(100vw - 32px);
+  }
+}
+

@@ -13,7 +13,7 @@
   <meta http-equiv="Expires" content="0">
 
   <!-- Estilos e Design System -->
-  <link rel="stylesheet" href="style.css?v=2.2">
+  <link rel="stylesheet" href="style.css?v=2.3">
 
   <!-- Firebase Compat CDN (v9.23.0) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -884,7 +884,7 @@
           openVariationModal(product);
         } else {
           addToCart(product, null, 1);
-          openCartDrawer();
+          showAddedToCartFeedback(product.nome, 1);
         }
       };
 
@@ -922,10 +922,68 @@
         const select = document.getElementById('selectVariation');
         const selectedVariation = select.value;
         const qty = APP_STATE.modalQty;
+        const product = APP_STATE.activeModalProduct;
 
-        addToCart(APP_STATE.activeModalProduct, selectedVariation, qty);
+        addToCart(product, selectedVariation, qty);
         closeVariationModal();
-        openCartDrawer();
+        showAddedToCartFeedback(product.nome, qty);
+      }
+
+      function showAddedToCartFeedback(productName, qty) {
+        // 1. Efeito visual pulsante no badge e botão da sacola
+        const badge = document.getElementById('cartCountBadge');
+        const btnOpenCart = document.getElementById('btnOpenCart');
+
+        if (badge) {
+          badge.classList.remove('badge-bump');
+          void badge.offsetWidth; // Força reflow para reiniciar animação
+          badge.classList.add('badge-bump');
+        }
+        if (btnOpenCart) {
+          btnOpenCart.classList.remove('btn-cart-glow');
+          void btnOpenCart.offsetWidth;
+          btnOpenCart.classList.add('btn-cart-glow');
+        }
+
+        // 2. Notificação flutuante elegante (Toast) que não interrompe a navegação
+        let toast = document.getElementById('cartFeedbackToast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'cartFeedbackToast';
+          toast.className = 'cart-toast';
+          document.body.appendChild(toast);
+        }
+
+        const displayName = productName && productName.length > 26 ? productName.substring(0, 26) + '...' : (productName || 'Produto');
+        const qtyPrefix = qty > 1 ? `${qty}x ` : '';
+
+        toast.innerHTML = `
+          <div class="cart-toast-content">
+            <span class="cart-toast-icon" aria-hidden="true">🛍️</span>
+            <div class="cart-toast-text">
+              <strong>${qtyPrefix}${window.pdmEscapeHtml(displayName)}</strong>
+              <span>adicionado à sacola</span>
+            </div>
+            <button type="button" class="cart-toast-btn" id="btnToastViewCart">Ver Sacola</button>
+          </div>
+        `;
+
+        const btnView = toast.querySelector('#btnToastViewCart');
+        if (btnView) {
+          btnView.addEventListener('click', () => {
+            toast.classList.remove('show');
+            openCartDrawer();
+          });
+        }
+
+        toast.classList.add('show');
+
+        if (window._cartToastTimer) {
+          clearTimeout(window._cartToastTimer);
+        }
+        window._cartToastTimer = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3500);
       }
 
       // --- 7. SACOLA (CART) & PERSISTÊNCIA ---
@@ -997,6 +1055,7 @@
         document.getElementById('cartOverlay').classList.add('open');
         document.body.style.overflow = 'hidden';
       }
+      window.openCartDrawer = openCartDrawer;
 
       function closeCartDrawer() {
         document.getElementById('cartOverlay').classList.remove('open');
