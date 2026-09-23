@@ -414,7 +414,14 @@
     (function () {
       'use strict';
 
-      const PLACEHOLDER_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' width='100%25' height='100%25'%3E%3Cdefs%3E%3CradialGradient id='grad' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%2338101E'/%3E%3Cstop offset='100%25' stop-color='%230D0709'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grad)'/%3E%3Ccircle cx='100' cy='90' r='18' stroke='%23C9A24D' stroke-width='4' fill='none'/%3E%3Cpath d='M96 108h8l3 34h-14z' fill='%23C9A24D'/%3E%3Ctext x='100' y='165' text-anchor='middle' fill='%23B8A8A4' font-family='sans-serif' font-size='12' letter-spacing='1'%3EIMAGEM RESERVADA%3C/text%3E%3C/svg%3E";
+      const PLACEHOLDER_SVG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22 width=%22100%25%22 height=%22100%25%22%3E%3Cdefs%3E%3CradialGradient id=%22grad%22 cx=%2250%25%22 cy=%2250%25%22 r=%2250%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%2338101E%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%230D0709%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22url(%23grad)%22/%3E%3Ccircle cx=%22100%22 cy=%2290%22 r=%2218%22 stroke=%22%23C9A24D%22 stroke-width=%224%22 fill=%22none%22/%3E%3Cpath d=%22M96 108h8l3 34h-14z%22 fill=%22%23C9A24D%22/%3E%3Ctext x=%22100%22 y=%22165%22 text-anchor=%22middle%22 fill=%22%23B8A8A4%22 font-family=%22sans-serif%22 font-size=%2212%22 letter-spacing=%221%22%3EIMAGEM RESERVADA%3C/text%3E%3C/svg%3E";
+
+      window.handleImgError = function (img) {
+        if (img) {
+          img.onerror = null;
+          img.src = PLACEHOLDER_SVG;
+        }
+      };
 
       let currentImageUrls = [];
 
@@ -558,7 +565,7 @@
               src="${window.pdmEscapeHtml(url || PLACEHOLDER_SVG)}" 
               class="image-link-thumb" 
               alt="Miniatura"
-              onerror="this.onerror=null; this.src='${PLACEHOLDER_SVG}';"
+              onerror="window.handleImgError(this)"
             >
             <input 
               type="url" 
@@ -633,7 +640,7 @@
                 src="${window.pdmEscapeHtml(previewImg)}" 
                 alt="Preview" 
                 class="product-image admin-preview-img"
-                onerror="this.onerror=null; this.src='${PLACEHOLDER_SVG}';"
+                onerror="window.handleImgError(this)"
               >
             </div>
             <div class="card-content">
@@ -821,7 +828,7 @@
           return `
             <tr>
               <td>
-                <img src="${window.pdmEscapeHtml(img)}" class="image-link-thumb" onerror="this.onerror=null; this.src='${PLACEHOLDER_SVG}';">
+                <img src="${window.pdmEscapeHtml(img)}" class="image-link-thumb" onerror="window.handleImgError(this)">
               </td>
               <td>
                 <strong>${window.pdmEscapeHtml(p.nome)}</strong><br>
