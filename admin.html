@@ -7,14 +7,19 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0D0709">
 
-  <link rel="stylesheet" href="style.css">
+  <!-- Prevenção de Cache -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <link rel="stylesheet" href="style.css?v=2.2">
 
   <!-- Firebase Compat CDN (v9.23.0) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   
-  <script src="firebase-config.js"></script>
+  <script src="firebase-config.js?v=2.2"></script>
 
   <style>
     /* Estilos específicos do Admin */
@@ -102,6 +107,12 @@
         </div>
 
         <div class="header-actions">
+          <button id="btnSyncFirebase" type="button" class="btn-primary" style="font-size: 0.82rem; padding: 6px 14px; background: rgba(201, 162, 77, 0.15); border: 1px solid var(--gold-aged); color: var(--gold-hover); display: inline-flex; align-items: center; gap: 6px;" title="Sincronizar todo o catálogo do computador com a nuvem (para aparecer nos celulares)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+            </svg>
+            <span>☁️ Sincronizar c/ Celulares</span>
+          </button>
           <a href="index.html" target="_blank" class="btn-secondary" style="font-size: 0.82rem; gap: 6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -663,7 +674,7 @@
         });
 
         // Submissão do Formulário de Produto
-        document.getElementById('productForm').addEventListener('submit', (e) => {
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
           e.preventDefault();
           const prodId = document.getElementById('prodId').value;
           const nome = document.getElementById('prodNome').value.trim();
@@ -726,8 +737,16 @@
               estoqueBaixoQtd
             };
 
-            window.DB.saveProduct(productData);
-            alert('Peça salva com sucesso!');
+            const saved = window.DB.saveProduct(productData);
+            if (saved && saved._remotePromise) {
+              await saved._remotePromise;
+            }
+            if (saved && saved._synced) {
+              alert('✅ Peça salva e sincronizada com sucesso na nuvem do Firebase!\nTodos os celulares já receberam as fotos atualizadas.');
+            } else {
+              alert('✅ Peça salva localmente!\n💡 Dica: Clique no botão "☁️ Sincronizar c/ Celulares" no topo para enviar todas as alterações para o Firebase.');
+            }
+
             resetProductForm();
             renderProductsTable();
           } finally {
@@ -735,6 +754,33 @@
             btnSubmit.textContent = 'Salvar Peça';
           }
         });
+
+        // Botão de Sincronização Geral com Firebase para Celulares
+        const btnSync = document.getElementById('btnSyncFirebase');
+        if (btnSync) {
+          btnSync.addEventListener('click', async () => {
+            btnSync.disabled = true;
+            btnSync.innerHTML = '<span>⏳ Sincronizando...</span>';
+            try {
+              const res = await window.DB.syncAllToRemote();
+              if (res.success) {
+                alert(`🎉 Sucesso! Catálogo completo (${res.count} produtos) sincronizado com a nuvem do Firebase!\nTodos os celulares agora verão exatamente as mesmas fotos e peças.`);
+              } else {
+                alert(`⚠️ Não foi possível sincronizar com o Firebase: ${res.message}\nCertifique-se de estar conectada com maria@gmail.com.`);
+              }
+            } catch (err) {
+              alert(`Erro ao sincronizar: ${err.message}`);
+            } finally {
+              btnSync.disabled = false;
+              btnSync.innerHTML = `
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                </svg>
+                <span>☁️ Sincronizar c/ Celulares</span>
+              `;
+            }
+          });
+        }
 
         document.getElementById('btnCancelEdit').addEventListener('click', resetProductForm);
 

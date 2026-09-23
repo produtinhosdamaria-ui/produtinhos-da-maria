@@ -309,10 +309,21 @@
         rootRef.on('value', (snapshot) => {
           const val = snapshot.val();
           if (val) {
-            if (val.products) localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(val.products));
-            if (val.cities) localStorage.setItem(STORAGE_KEYS.CITIES, JSON.stringify(val.cities));
-            if (val.coupons) localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(val.coupons));
-            if (val.settings) localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(val.settings));
+            if (val.products) {
+              const list = Array.isArray(val.products) ? val.products : Object.values(val.products);
+              localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(list));
+            }
+            if (val.cities) {
+              const list = Array.isArray(val.cities) ? val.cities : Object.values(val.cities);
+              localStorage.setItem(STORAGE_KEYS.CITIES, JSON.stringify(list));
+            }
+            if (val.coupons) {
+              const list = Array.isArray(val.coupons) ? val.coupons : Object.values(val.coupons);
+              localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(list));
+            }
+            if (val.settings) {
+              localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(val.settings));
+            }
             this.notifyListeners('remote_sync');
           }
         }, (error) => {
@@ -322,6 +333,68 @@
       } catch (e) {
         console.warn('Falha ao configurar listeners do Firebase:', e);
         this.isFirebaseReady = false;
+      }
+    }
+
+    async fetchRemoteOnce() {
+      if (!this.isFirebaseReady || !this.database) return false;
+      try {
+        const snapshot = await this.database.ref('pdm_data').once('value');
+        const val = snapshot.val();
+        if (val) {
+          if (val.products) {
+            const list = Array.isArray(val.products) ? val.products : Object.values(val.products);
+            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(list));
+          }
+          if (val.cities) {
+            const list = Array.isArray(val.cities) ? val.cities : Object.values(val.cities);
+            localStorage.setItem(STORAGE_KEYS.CITIES, JSON.stringify(list));
+          }
+          if (val.coupons) {
+            const list = Array.isArray(val.coupons) ? val.coupons : Object.values(val.coupons);
+            localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(list));
+          }
+          if (val.settings) {
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(val.settings));
+          }
+          this.notifyListeners('remote_fetch');
+          return true;
+        }
+      } catch (err) {
+        console.warn('Falha na busca ativa do Firebase:', err);
+      }
+      return false;
+    }
+
+    async syncAllToRemote() {
+      if (!this.isFirebaseReady || !this.database) {
+        return { success: false, message: 'Firebase não está conectado.' };
+      }
+      try {
+        const productsList = this.getProducts();
+        const productsMap = {};
+        productsList.forEach(p => { productsMap[p.id] = p; });
+
+        const citiesList = this.getCities();
+        const citiesMap = {};
+        citiesList.forEach(c => { citiesMap[c.id] = c; });
+
+        const couponsList = this.getCoupons();
+        const couponsMap = {};
+        couponsList.forEach(c => { couponsMap[c.id] = c; });
+
+        const settings = this.getSettings();
+
+        await this.database.ref('pdm_data').set({
+          products: productsMap,
+          cities: citiesMap,
+          coupons: couponsMap,
+          settings: settings
+        });
+
+        return { success: true, count: productsList.length };
+      } catch (err) {
+        return { success: false, message: err.message };
       }
     }
 
@@ -392,7 +465,15 @@
       safeStorageSet(STORAGE_KEYS.PRODUCTS, products);
 
       if (this.isFirebaseReady && this.database) {
-        this.database.ref('pdm_data/products/' + sanitized.id).set(sanitized).catch(() => {});
+        sanitized._remotePromise = this.database.ref('pdm_data/products/' + sanitized.id).set(sanitized)
+          .then(() => { sanitized._synced = true; return true; })
+          .catch((err) => {
+            console.warn('Aviso: salvo no LocalStorage, mas falhou ao gravar no Firebase:', err.message);
+            sanitized._synced = false;
+            return false;
+          });
+      } else {
+        sanitized._remotePromise = Promise.resolve(false);
       }
 
       this.notifyListeners('save_product');
@@ -406,7 +487,9 @@
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
 
       if (this.isFirebaseReady && this.database) {
-        this.database.ref('pdm_data/products/' + id).remove().catch(() => {});
+        this.database.ref('pdm_data/products/' + id).remove().catch((err) => {
+          console.warn('Aviso: excluído no LocalStorage, mas falhou no Firebase:', err.message);
+        });
       }
 
       this.notifyListeners('delete_product');

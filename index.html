@@ -7,8 +7,13 @@
   <meta name="description" content="Produtinhos da Maria - Boutique sensual premium, sofisticada e discreta. Lingerie, aromas, cosméticos e bem-estar íntimo.">
   <meta name="theme-color" content="#0D0709">
 
+  <!-- Prevenção de Cache em Navegadores Móveis -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <!-- Estilos e Design System -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.2">
 
   <!-- Firebase Compat CDN (v9.23.0) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -16,7 +21,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   
   <!-- Camada de Dados e Fallback -->
-  <script src="firebase-config.js"></script>
+  <script src="firebase-config.js?v=2.2"></script>
 </head>
 <body>
 
@@ -443,6 +448,13 @@
           window.DB.onDataChange(() => {
             refreshDataFromStore();
           });
+        }
+
+        // Força busca remota ativa no Firebase Realtime Database
+        if (window.DB && window.DB.fetchRemoteOnce) {
+          window.DB.fetchRemoteOnce().then(() => {
+            refreshDataFromStore();
+          }).catch(() => {});
         }
 
         // Ano no rodapé
