@@ -72,18 +72,14 @@
         Gestão da Loja • Produtinhos da Maria
       </p>
 
-      <div class="demo-alert-banner" style="text-align: left; font-size: 0.78rem; background: rgba(37, 211, 102, 0.1); border-color: rgba(37, 211, 102, 0.35); color: #85E8A2;">
-        <span>🔒 <strong>Firebase Auth Conectado:</strong> Projeto <code>sexshop-43999</code> ativo com regras de segurança.</span>
-      </div>
-
-      <form id="adminLoginForm">
+      <form id="adminLoginForm" autocomplete="off">
         <div class="form-group" style="text-align: left;">
           <label class="section-label" for="loginUser">E-mail de Acesso:</label>
-          <input type="email" id="loginUser" class="form-control" value="maria@gmail.com" placeholder="maria@gmail.com" required autocomplete="username">
+          <input type="email" id="loginUser" class="form-control" placeholder="Digite seu e-mail cadastrado" required autocomplete="off" autocapitalize="none">
         </div>
         <div class="form-group" style="text-align: left;">
           <label class="section-label" for="loginPass">Senha:</label>
-          <input type="password" id="loginPass" class="form-control" value="maria123" placeholder="••••••••" required autocomplete="current-password">
+          <input type="password" id="loginPass" class="form-control" placeholder="Digite sua senha de acesso" required autocomplete="off">
         </div>
         <div id="loginErrorMsg" style="color: var(--danger); font-size: 0.82rem; margin-bottom: 12px; display: none;"></div>
         <button type="submit" id="btnLoginSubmit" class="btn-primary" style="margin-top: 10px;">Entrar no Painel</button>
@@ -454,6 +450,10 @@
         } else {
           loginScreen.style.display = 'flex';
           adminApp.style.display = 'none';
+          const uInput = document.getElementById('loginUser');
+          const pInput = document.getElementById('loginPass');
+          if (uInput) uInput.value = '';
+          if (pInput) pInput.value = '';
         }
       }
 
@@ -471,6 +471,8 @@
         try {
           const res = await window.DB.adminLogin(user, pass);
           if (res.success) {
+            // Limpa senha da memória do formulário após login bem sucedido
+            document.getElementById('loginPass').value = '';
             checkAuth();
           } else {
             errEl.textContent = res.message || 'E-mail ou senha incorretos.';
@@ -487,6 +489,10 @@
 
       document.getElementById('btnAdminLogout').addEventListener('click', async () => {
         await window.DB.adminLogout();
+        const uInput = document.getElementById('loginUser');
+        const pInput = document.getElementById('loginPass');
+        if (uInput) uInput.value = '';
+        if (pInput) pInput.value = '';
         checkAuth();
       });
 
